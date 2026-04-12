@@ -1,0 +1,22 @@
+#!/usr/bin/env fish
+source ~/.local/bin/menu-lib
+
+set options "󰣇 Official Repos" "󰣇 AUR"
+set choice (printf "%s\n" $options | walker --dmenu --nosearch --minwidth 250 --minheight 100)
+
+switch $choice
+    case "󰣇 Official Repos"
+        alacritty --title "walker menu" -e fish -c "
+            source ~/.local/bin/menu-lib
+            set pkg (fzf_pick '󰏗' 'pacman' 'pacman -Si' 'pacman -Ssq')
+            and sudo pacman -S \$pkg
+            show_done"
+    case "󰣇 AUR"
+        alacritty --title "walker menu" -e fish -c "
+            source ~/.local/bin/menu-lib
+            set pkg (fzf_pick '󰏗' 'aur' 'paru -Si' 'curl -s "https://aur.archlinux.org/packages.gz" | gunzip')
+            and paru -S \$pkg
+            show_done"
+    case ""
+        menu
+end

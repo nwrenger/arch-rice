@@ -1,0 +1,9 @@
+#!/usr/bin/env fish
+
+set muted (pactl get-source-mute @DEFAULT_SOURCE@ | grep -c "yes")
+
+if test $muted -eq 1
+    echo '{"text": "󰍭", "tooltip": "Mic muted", "class": "muted"}'
+else
+    echo '{"text": "󰍬", "tooltip": "Mic active", "class": "active"}'
+end

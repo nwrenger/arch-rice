@@ -1,0 +1,6 @@
+name_pretty = "@ Websearch"
+
+[[entries]]
+default = true
+name = "DuckDuckGo"
+url = "https://duckduckgo.com/search?q=%TERM%"

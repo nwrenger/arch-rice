@@ -1,0 +1,115 @@
+#!/usr/bin/env fish
+source ~/.local/bin/menu-lib
+
+# Get sudo
+set_color b4befe
+echo "󰌋 Enter sudo password to proceed"
+set_color normal
+sudo -v
+or begin
+    set_color red
+    echo "󰅚 Failed to authenticate with sudo."
+    set_color normal
+    exit 0
+end
+echo ""
+
+# Check for updates, exit early if there are none
+set_color cyan
+echo " Checking for updates..."
+set_color normal
+paru -Sy
+set updates (paru -Qu 2>/dev/null)
+echo ""
+if test -z "$updates"
+    set_color green
+    echo "󰸞 System is already up to date."
+    set_color normal
+    exit 0
+end
+
+confirm-prompt $updates
+echo ""
+
+# Create snapshot
+set DATE (date +"%Y-%m-%d_%H-%M")
+set SNAPSHOT_NAME "pre-update_$DATE"
+set_color cyan
+echo "󰚰 Creating btrfs snapshot: $SNAPSHOT_NAME"
+set_color normal
+set snapshot_output (sudo snapper create \
+    --description "$SNAPSHOT_NAME" \
+    --cleanup-algorithm number \
+    --print-number)
+if test $status -ne 0 -o -z "$snapshot_output"
+    echo ""
+    set_color red
+    echo "󰅚 Failed to create Snapper snapshot."
+    set_color normal
+    exit 1
+end
+set SNAPSHOT_NUM (string trim -- $snapshot_output)
+echo ""
+
+set_color cyan
+echo "󰁯 Syncing snapshot with Limine..."
+set_color normal
+echo ""
+sudo limine-snapper-sync
+if test $status -ne 0
+    echo ""
+    set_color red
+    echo "󰅚 limine-snapper-sync failed."
+    echo "    Snapshot #$SNAPSHOT_NUM was created, but Limine was not updated."
+    set_color normal
+    exit 1
+end
+echo ""
+
+set_color cyan
+echo "󰚰 Running full system update..."
+set_color normal
+echo ""
+paru -Syu --noconfirm
+set UPDATE_STATUS $status
+echo ""
+
+set_color cyan
+echo "󰁯 Refreshing Limine snapshot metadata..."
+set_color normal
+echo ""
+sudo limine-snapper-sync
+set LIMINE_SYNC_STATUS $status
+echo ""
+
+if test $UPDATE_STATUS -eq 0
+    set_color green
+    echo "󰸞 System update was successful."
+else
+    set_color red
+    echo "󰅚 System update failed."
+end
+echo ""
+
+set_color cyan
+echo "󰁯 Snapshot #$SNAPSHOT_NUM created: $SNAPSHOT_NAME"
+echo "󰁯 To roll back with Snapper: sudo snapper rollback $SNAPSHOT_NUM"
+echo "󰁯 Or boot the snapshot from Limine's snapshot menu"
+set_color normal
+
+if test $LIMINE_SYNC_STATUS -ne 0
+    echo ""
+    set_color yellow
+    echo "󰔓 Warning: Limine sync failed after the update."
+    echo "   Try running: sudo limine-snapper-sync"
+    set_color normal
+end
+echo ""
+
+if test $UPDATE_STATUS -ne 0
+    exit 0
+end
+
+if restart-prompt
+    hyprshutdown -t 'Restarting...' --post-cmd 'reboot'
+end

@@ -1,0 +1,83 @@
+#!/usr/bin/env fish
+
+function fzf_pick
+    # usage: fzf_pick <prompt_icon> <prompt_text> <preview_cmd> <source_cmd> [--single]
+    set icon $argv[1]
+    set prompt $argv[2]
+    set preview $argv[3]
+    set source_cmd $argv[4]
+
+    set multi_flag --multi
+    set preview_label "alt-p: toggle  alt-j/k: scroll  tab: multi-select"
+    if contains -- --single $argv
+        set multi_flag --no-multi
+        set preview_label "alt-p: toggle  alt-j/k: scroll"
+    end
+
+    eval $source_cmd | fzf \
+        --prompt="$icon $prompt > " \
+        $multi_flag \
+        --preview="$preview {1}" \
+        --preview-label="$preview_label" \
+        --preview-label-pos="bottom" \
+        --preview-window="down:65%:wrap" \
+        --bind="alt-p:toggle-preview" \
+        --bind="alt-d:preview-half-page-down,alt-u:preview-half-page-up" \
+        --bind="alt-k:preview-up,alt-j:preview-down" \
+        --color="prompt:#cba6f7,pointer:#cba6f7,marker:#a6e3a1,hl:#89b4fa,hl+:#89b4fa"
+end
+
+
+function confirm-prompt
+    # usage: confirm-prompt <update_line> [<update_line> ...]
+    set -l pkg_list
+    for u in $argv
+        set -a pkg_list "  • $u"
+    end
+
+    gum style \
+        --border rounded \
+        --border-foreground 6 \
+        --padding "1 2" \
+        "󰚰 Pending Updates" \
+        "" \
+        $pkg_list \
+        "" \
+        "• A Btrfs snapshot will be created before updating." \
+        "• You cannot stop the update once it starts."
+
+    echo
+
+    if not gum confirm "Proceed with update?"
+        set_color yellow
+        echo "󰅚 Update cancelled."
+        set_color normal
+        exit 0
+    end
+end
+
+
+function restart-prompt
+    # usage: restart-prompt  →  returns 0 if user confirms restart, 1 otherwise
+    echo
+
+    gum style \
+        --border rounded \
+        --border-foreground 6 \
+        --padding "1 2" \
+        "󰜉 Restart recommended to apply all changes."
+
+    echo
+
+    gum confirm "Restart now?"
+    return $status
+end
+
+
+function show_done
+    if test $status -eq 0
+        echo
+        gum spin --spinner "jump" --title "Press any key to close..." \
+            --title.foreground="#6c7086" -- bash -c 'read -n 1 -s'
+    end
+end

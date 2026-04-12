@@ -1,0 +1,4 @@
+SUBSYSTEM=="i2c-dev", ACTION=="add", \
+  ATTR{name}=="*", \
+  RUN+="/bin/sh -c 'echo ddcci 0x37 > /sys/bus/i2c/devices/%k/new_device'"
+

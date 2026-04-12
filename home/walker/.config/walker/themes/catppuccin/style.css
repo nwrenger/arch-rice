@@ -1,0 +1,118 @@
+* {
+    all: unset;
+}
+* {
+    font-family: "FiraCode Nerd Font";
+    font-size: 18px;
+    color: #cdd6f4;
+}
+scrollbar {
+    opacity: 0;
+}
+.normal-icons {
+    -gtk-icon-size: 16px;
+}
+.large-icons {
+    -gtk-icon-size: 32px;
+}
+.box-wrapper {
+    background: alpha(#1e1e2e, 0.95);
+    padding: 20px;
+    border: 2px solid #cba6f7;
+    border-radius: 10px;
+}
+.preview-box {
+    background: #181825;
+    border-radius: 10px;
+    padding: 12px;
+}
+.box {
+}
+.search-container {
+    background: #181825;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+.input placeholder {
+    opacity: 0.5;
+}
+.input {
+    color: #cdd6f4;
+    padding: 4px 8px;
+}
+.input:focus,
+.input:active {
+    box-shadow: none;
+    outline: none;
+}
+.input selection {
+    background: #cba6f7;
+    color: #1e1e2e;
+}
+.content-container {
+    margin-top: 4px;
+}
+.placeholder {
+    color: #6c7086;
+    font-style: italic;
+    padding: 12px;
+}
+.scroll {
+}
+.list {
+}
+child,
+child > * {
+    border-radius: 10px;
+}
+child:hover .item-box {
+    background: #313244;
+    border-radius: 10px;
+}
+child:selected .item-box {
+    background: #313244;
+    border-radius: 10px;
+}
+child:selected .item-box * {
+    color: #89b4fa;
+}
+.item-box {
+    padding-left: 14px;
+}
+.item-text-box {
+    all: unset;
+    padding: 14px 0;
+}
+.item-text {
+    color: #cdd6f4;
+}
+.item-subtext {
+    font-size: 0px;
+    min-height: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+.item-image {
+    margin-right: 14px;
+    -gtk-icon-transform: scale(0.9);
+    border-radius: 10px;
+}
+.current {
+    font-style: italic;
+    color: #cba6f7;
+}
+.keybind-hints {
+    background: #1e1e2e;
+    padding: 10px;
+    margin-top: 10px;
+    color: #6c7086;
+    font-size: 13px;
+    border-radius: 10px;
+}
+.preview {
+    background: #181825;
+    padding: 12px;
+    border-radius: 10px;
+    color: #cdd6f4;
+}

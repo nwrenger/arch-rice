@@ -1,0 +1,14 @@
+#!/usr/bin/env fish
+
+set mon (hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')
+
+switch $mon
+    case DP-2
+        set dev ddcci6
+    case DP-3
+        set dev ddcci7
+    case '*'
+        exit 1
+end
+
+swayosd-client --monitor $mon --device $dev --brightness raise

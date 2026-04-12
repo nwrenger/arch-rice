@@ -1,0 +1,24 @@
+#!/usr/bin/env fish
+source ~/.local/bin/menu-lib
+
+set options "󰋼 About" "󰏗 Install" "󰚰 Update" "󰆴 Remove" "󰐥 Power"
+set choice (printf "%s\n" $options | walker --dmenu --nosearch --minwidth 250 --minheight 250)
+
+switch $choice
+    case "󰋼 About"
+        alacritty --title "fastfetch" -e fish -c "
+            source ~/.local/bin/menu-lib
+            fastfetch
+            show_done"
+    case "󰏗 Install"
+        menu-install
+    case "󰚰 Update"
+        alacritty --title "walker menu" -e fish -c "
+            source ~/.local/bin/menu-lib
+            menu-update
+            show_done"
+    case "󰆴 Remove"
+        menu-remove
+    case "󰐥 Power"
+        menu-power
+end

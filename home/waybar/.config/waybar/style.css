@@ -1,0 +1,93 @@
+* {
+    font-family: "FiraCode Nerd Font";
+    font-feature-settings: "liga";
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+tooltip {
+    background-color: rgba(30, 30, 46, 0.95);
+    color: #cdd6f4;
+    border: none;
+    border-radius: 4px;
+}
+
+tooltip label {
+    color: #cdd6f4;
+}
+
+#workspaces button {
+    padding: 0 8px;
+}
+
+#workspaces button:hover {
+    background: none;
+    box-shadow: none;
+}
+
+#tray {
+    padding: 0 8px;
+}
+
+#clock,
+#custom-mic,
+#custom-vpn,
+#cpu,
+#pulseaudio,
+#network,
+#bluetooth {
+    padding: 0 12px;
+    color: #cdd6f4;
+}
+
+#clock {
+    color: #89b4fa;
+}
+
+#cpu {
+    color: #a6e3a1;
+}
+
+#memory {
+    color: #fab387;
+}
+
+#pulseaudio {
+    color: #f38ba8;
+}
+
+#custom-mic {
+    color: #f9e2af;
+}
+
+#custom-vpn {
+    color: #cba6f7;
+}
+
+#bluetooth {
+    color: #89b4fa;
+}
+
+#bluetooth.connected {
+    color: #89dceb;
+}
+
+#network {
+    color: #89dceb;
+}
+
+#custom-mic.muted,
+#custom-vpn.disconnected,
+#bluetooth.disabled,
+#pulseaudio.muted,
+#network.disconnected,
+#network.disabled {
+    color: #6c7086;
+}

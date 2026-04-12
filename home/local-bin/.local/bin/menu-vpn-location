@@ -1,0 +1,23 @@
+#!/usr/bin/env fish
+source ~/.local/bin/menu-lib
+
+set selected (fzf_pick "" "location" \
+    "~/.local/bin/menu-vpn-preview {}" \
+    "mullvad relay list | awk '/^[^\t]/{print}'" --single)
+
+if test -n "$selected"
+    set countrycode (echo $selected | grep -oP '\(([a-z]+)\)' | tr -d '()')
+    mullvad relay set location $countrycode
+
+    echo ""
+    if test $status -eq 0
+        set_color green
+        echo "󰸞 Setting location was successful."
+    else
+        set_color red
+        echo "󰅚 Setting location failed."
+    end
+    set_color normal
+else
+    exit 1
+end

@@ -1,0 +1,13 @@
+#!/usr/bin/env fish
+
+set s (mullvad status)
+
+if string match -q "*Connected*" $s
+    mullvad disconnect
+    swayosd-client --custom-message "VPN Disconnecting..." --custom-icon network-offline
+else
+    mullvad connect
+    swayosd-client --custom-message "VPN Connecting..." --custom-icon network-transmit-receive
+end
+
+pkill -RTMIN+2 waybar

@@ -1,0 +1,18 @@
+#!/usr/bin/env fish
+
+set country $argv[1]
+
+mullvad relay list | awk -v country="$country" '
+  /^[^\t]/ {
+    if (found && city != "") print city " — " relay_count " relays"
+    found = ($0 == country)
+    city = ""; relay_count = 0
+  }
+  found && /^\t[^\t]/ {
+    if (city != "") print city " — " relay_count " relays"
+    line = $0; gsub(/^\t/, "", line); gsub(/ @ .*/, "", line)
+    city = line; relay_count = 0
+  }
+  found && /^\t\t/ { relay_count++ }
+  END { if (found && city != "") print city " — " relay_count " relays" }
+'

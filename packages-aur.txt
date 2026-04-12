@@ -1,0 +1,20 @@
+catppuccin-cursors-mocha
+ddcci-driver-linux-dkms-git ddcci
+elephant
+elephant-calc
+elephant-desktopapplications
+elephant-providerlist
+elephant-websearch
+enpass-bin
+grimblast-git
+hyprshutdown
+limine-entry-tool
+limine-snapper-sync
+localsend-bin
+paru
+paru-debug
+stoat-desktop-bin
+ttf-ia-writer
+walker
+xclicker
+zen-browser-bin

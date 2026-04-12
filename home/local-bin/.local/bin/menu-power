@@ -1,0 +1,21 @@
+#!/usr/bin/env fish
+
+set options "󰐥 Shutdown" "󰜉 Reboot" "󰍃 Logout" "󰤄 Suspend"
+set choice (printf "%s\n" $options | walker --dmenu --nosearch --minwidth 200 --minheight 150)
+
+switch $choice
+    case "󰐥 Shutdown"
+        hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'
+    case "󰜉 Reboot"
+        hyprshutdown -t 'Restarting...' --post-cmd 'reboot'
+    case "󰍃 Logout"
+        hyprshutdown -t 'Logging out...'
+    case "󰤄 Suspend"
+        systemctl suspend
+    case ""
+        if not contains -- nomenu $argv
+            menu
+        else
+            walker --close
+        end
+end

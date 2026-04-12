@@ -1,0 +1,3 @@
+# Cursor theme
+export HYPRCURSOR_THEME=catppuccin-mocha-dark-cursors
+export HYPRCURSOR_SIZE=20

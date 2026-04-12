@@ -1,0 +1,22 @@
+#!/usr/bin/env fish
+source ~/.local/bin/menu-lib
+
+set options "󰆴 Only" "󰵩 With dependencies"
+set choice (printf "%s\n" $options | walker --dmenu --nosearch --minwidth 250 --minheight 100)
+
+switch $choice
+    case "󰆴 Only"
+        alacritty --title "walker menu" -e fish -c "
+            source ~/.local/bin/menu-lib
+            set pkg (fzf_pick '󰆴' 'remove' 'pacman -Qi' 'pacman -Qeq')
+            and sudo pacman -R \$pkg
+            show_done"
+    case "󰵩 With dependencies"
+        alacritty --title "walker menu" -e fish -c "
+            source ~/.local/bin/menu-lib
+            set pkg (fzf_pick '󰵩' 'remove+deps' 'pacman -Qi' 'pacman -Qeq')
+            and sudo pacman -Rns \$pkg
+            show_done"
+    case ""
+        menu
+end

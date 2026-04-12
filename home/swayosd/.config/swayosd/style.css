@@ -1,0 +1,29 @@
+window#osd {
+    background: alpha(#1e1e2e, 0.95);
+    border: 2px solid #cba6f7;
+    border-radius: 10px;
+}
+
+box.horizontal {
+    padding: 12px 16px;
+    spacing: 12px;
+}
+
+image {
+    -gtk-icon-size: 20px;
+}
+
+label {
+    font-size: 16px;
+    min-width: 54px;
+}
+
+trough {
+    background: #181825;
+    border-radius: 10px;
+}
+
+progress {
+    background: #cba6f7;
+    border-radius: 10px;
+}

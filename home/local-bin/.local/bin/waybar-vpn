@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+
+set status_output (mullvad status 2>/dev/null)
+set state (printf '%s\n' $status_output | head -n1 | string trim)
+set country ""
+
+# Extract country from:
+# Visible location: Germany, Hanover. IPv4: ...
+set visible_line (printf '%s\n' $status_output | grep -m1 "Visible location:")
+
+if test -n "$visible_line"
+    set location_part (string replace -r '^.*Visible location:\s*' '' -- $visible_line)
+    set location_part (string replace -r '\. IPv[46]:.*$' '' -- $location_part)
+    set country (string split -m1 ', ' -- $location_part)[1]
+end
+
+switch $state
+    case "Connected"
+        if test -n "$country"
+            echo "{\"text\": \"󰒃\", \"tooltip\": \"Connected — $country\", \"class\": \"connected\"}"
+        else
+            echo '{"text": "󰒃", "tooltip": "Connected", "class": "connected"}'
+        end
+
+    case "Connecting"
+        if test -n "$country"
+            echo "{\"text\": \"󰁪\", \"tooltip\": \"Connecting — $country\", \"class\": \"connecting\"}"
+        else
+            echo '{"text": "󰁪", "tooltip": "Connecting", "class": "connecting"}'
+        end
+
+    case "Disconnecting"
+        if test -n "$country"
+            echo "{\"text\": \"󱧧\", \"tooltip\": \"Disconnecting — $country\", \"class\": \"disconnecting\"}"
+        else
+            echo '{"text": "󱧧", "tooltip": "Disconnecting", "class": "disconnecting"}'
+        end
+
+    case "Disconnected"
+        if test -n "$country"
+            echo "{\"text\": \"󰌙\", \"tooltip\": \"Disconnected — $country\", \"class\": \"disconnected\"}"
+        else
+            echo '{"text": "󰌙", "tooltip": "Disconnected", "class": "disconnected"}'
+        end
+
+    case '*'
+        echo "{\"text\": \"󰋗\", \"tooltip\": \"Mullvad status unknown: $state\", \"class\": \"unknown\"}"
+end

@@ -1,0 +1,150 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "ui_font_family": ".ZedSans",
+  "use_system_prompts": false,
+  "use_system_path_prompts": false,
+  "agent_servers": {
+    "codex-acp": {
+      "type": "registry",
+    },
+    "claude-acp": {
+      "type": "registry",
+    },
+  },
+  "edit_predictions": {
+    "provider": "none",
+  },
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
+        },
+        "javascript": {
+          "updateImportsOnFileMove": {
+            "enabled": "always",
+          },
+        },
+      },
+      "enable_lsp_tasks": true,
+    },
+  },
+  "colorize_brackets": true,
+  "ensure_final_newline_on_save": true,
+  "remove_trailing_whitespace_on_save": true,
+  "git_panel": {
+    "tree_view": true,
+    "dock": "left",
+  },
+  "outline_panel": {
+    "dock": "left",
+  },
+  "terminal": {
+    "dock": "bottom",
+  },
+  "agent": {
+    "dock": "right",
+  },
+  "collaboration_panel": {
+    "dock": "left",
+  },
+  "ssh_connections": [
+    {
+      "host": "oracle",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/etc/nginx/./"],
+        },
+        {
+          "paths": ["/var/www/server.nwrenger.dev/./"],
+        },
+        {
+          "paths": ["~/server"],
+        },
+      ],
+    },
+    {
+      "host": "alt-oracle",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["~/server"],
+        },
+      ],
+    },
+    {
+      "host": "lambda",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["~/server"],
+        },
+      ],
+    },
+    {
+      "host": "pi",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/home/ubuntu"],
+        },
+      ],
+    },
+    {
+      "host": "10.0.3.69",
+      "username": "nils",
+      "args": [],
+      "projects": [
+        {
+          "paths": ["/home/nils"],
+        },
+      ],
+    },
+  ],
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Catppuccin Mocha",
+    "dark": "Catppuccin Mocha",
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false,
+  },
+  "disable_ai": false,
+  "ui_font_size": 16,
+  "buffer_font_size": 14.0,
+  "buffer_font_family": "FiraCode Nerd Font",
+  "format_on_save": "on",
+  "theme": {
+    "mode": "dark",
+    "light": "GitHub Light",
+    "dark": "Catppuccin Mocha",
+  },
+  "inlay_hints": {
+    "enabled": true,
+  },
+  "languages": {
+    "Svelte": {
+      "tab_size": 4,
+      "hard_tabs": true,
+    },
+    "TypeScript": {
+      "tab_size": 4,
+      "hard_tabs": true,
+    },
+    "JavaScript": {
+      "tab_size": 4,
+      "hard_tabs": true,
+    },
+  },
+}
