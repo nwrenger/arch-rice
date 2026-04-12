@@ -12,7 +12,6 @@ limine-entry-tool
 limine-snapper-sync
 localsend-bin
 paru
-paru-debug
 stoat-desktop-bin
 ttf-ia-writer
 walker
