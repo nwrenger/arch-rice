@@ -95,7 +95,7 @@ step "Setting up paru (AUR helper)"
 if command -q paru
     ok "paru already installed"
 else
-    sudo pacman -S --needed base-devel git
+    sudo pacman -Syu --noconfirm base-devel
     set tmp (mktemp -d)
     git clone https://aur.archlinux.org/paru.git $tmp/paru
     and pushd $tmp/paru
