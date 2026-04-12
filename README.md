@@ -2,6 +2,24 @@
 
 Arch Linux + Hyprland setup. Catppuccin Mocha / Mauve.
 
+## Fresh install
+
+Install arch via `archinstall`. It is important that you select these options: `btrfs`, `hyprland` and `sddm`.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/install.fish | fish
+```
+
+The installer will:
+
+- Detect GPU/CPU and skip irrelevant packages
+- Install paru
+- Install all packages from `packages-aur.txt` + `packages-pacman.txt`
+- Stow all home dotfiles
+- Copy system configs
+- Enable system + user services
+- Set Fish as default shell
+
 ## Repo layout
 
 ```
@@ -46,24 +64,6 @@ arch-rice/
     └── sddm-theme/
         └── where_is_my_sddm_theme/
 ```
-
-## Fresh install
-
-Install arch via `archinstall`. It is important that you select these options: `btrfs`, `hyprland` and `sddm`.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/install.fish | fish
-```
-
-The installer will:
-
-- Detect GPU/CPU and skip irrelevant packages
-- Install paru
-- Install all packages from `packages-aur.txt` + `packages-pacman.txt`
-- Stow all home dotfiles
-- Copy system configs
-- Enable system + user services
-- Set Fish as default shell
 
 ## Hardware tags in packages.txt
 
