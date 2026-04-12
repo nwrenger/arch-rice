@@ -28,8 +28,6 @@ The installer will:
 
 2. **Snapper**: If subvolume layout differs, run `sudo snapper -c root create-config /`
 
-3. **NVIDIA**: Ensure cmdline includes `nvidia_drm.modeset=1 nvidia_drm.fbdev=1`
-
 ## Repo layout
 
 ```

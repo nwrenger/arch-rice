@@ -302,8 +302,6 @@ end
 if test $HAS_NVIDIA = 1
     step "NVIDIA setup"
     info "Make sure nvidia-open-dkms and dkms are installed (done via packages)"
-    info "If Wayland has issues, ensure kernel parameter 'nvidia_drm.modeset=1' is set"
-    warn "Check /boot/limine.conf cmdline includes: nvidia_drm.modeset=1 nvidia_drm.fbdev=1"
 end
 
 # ── done ─────────────────────────────────────────────────────────────────────
