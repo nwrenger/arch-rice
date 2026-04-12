@@ -38,17 +38,6 @@ if not command -q git
     sudo pacman -S --needed --noconfirm git
 end
 
-# ── remove archinstall hyprland defaults ─────────────────────────────────────
-step "Removing archinstall defaults"
-set archinstall_bloat dunst kitty dolphin wofi polkit-kde-agent slurp
-for pkg in $archinstall_bloat
-    if pacman -Q $pkg &>/dev/null
-        sudo pacman -Rns --noconfirm $pkg
-        and ok "  removed $pkg"
-        or warn "  failed to remove $pkg"
-    end
-end
-
 # ── clone dotfiles ───────────────────────────────────────────────────────────
 step "Cloning dotfiles"
 if test -d $DOTFILES_DIR
@@ -314,3 +303,6 @@ echo -e "║  1. Set PARTUUID in limine.conf      ║"
 echo -e "║  2. Run limine-enroll-config         ║"
 echo -e "║  3. Log out and back in (or reboot)  ║"
 echo -e "╚══════════════════════════════════════╝$CLR_RESET"
+echo ""
+echo -e "$CLR_YELLOW  You can now remove archinstall defaults you no longer need:$CLR_RESET"
+echo -e "$CLR_SUBTEXT  sudo pacman -Rns dunst kitty dolphin wofi polkit-kde-agent slurp$CLR_RESET"
