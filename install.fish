@@ -122,19 +122,18 @@ function parse_pkgs
     # usage: parse_pkgs <file> <skip_tags...>
     set file $argv[1]
     set skips $argv[2..]
-
+    set result
     for line in (grep -v '^\s*#' $file | grep -v '^\s*$')
         set parts (string split -n " " $line)
         set pkg $parts[1]
         set tag $parts[2]
-
-        if test -n "$tag"; and contains -- $tag $skips
-            warn "  skipping $pkg ($tag)" >&2
+        if test -n "$tag"; and contains $tag $skips
+            warn "  skipping $pkg ($tag)"
             continue
         end
-
-        printf '%s\n' $pkg
+        set result $result $pkg
     end
+    echo $result
 end
 
 set pacman_pkgs (parse_pkgs $pacman_file $skip_tags)
