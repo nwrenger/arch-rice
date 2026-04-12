@@ -105,6 +105,14 @@ else
     or err "Failed to install paru"
 end
 
+# ── configure pacman ─────────────────────────────────────────────────────────
+step "Configuring pacman repos"
+sudo cp $DOTFILES_DIR/system/etc/pacman.conf /etc/pacman.conf
+or err "Failed to copy pacman.conf"
+
+sudo pacman -Sy
+or err "Failed to refresh pacman databases"
+
 # ── install packages ─────────────────────────────────────────────────────────
 step "Installing packages"
 
@@ -187,9 +195,6 @@ step "Applying system configs"
 # locale
 sudo cp $DOTFILES_DIR/system/etc/locale.conf /etc/locale.conf
 sudo locale-gen
-
-# pacman.conf
-sudo cp $DOTFILES_DIR/system/etc/pacman.conf /etc/pacman.conf
 
 # zram
 sudo cp $DOTFILES_DIR/system/etc/systemd/zram-generator.conf /etc/systemd/zram-generator.conf
