@@ -11,7 +11,6 @@ hyprshutdown
 limine-entry-tool
 limine-snapper-sync
 localsend-bin
-paru
 stoat-desktop-bin
 ttf-ia-writer
 walker
