@@ -5,77 +5,28 @@ set REPO_URL "https://github.com/nwrenger/arch-rice"
 set DOTFILES_DIR "$HOME/.dotfiles"
 
 # ── colors (catppuccin mocha) ────────────────────────────────────────────────
-set CLR_MAUVE   "\e[38;2;203;166;247m"
-set CLR_GREEN   "\e[38;2;166;227;161m"
-set CLR_YELLOW  "\e[38;2;249;226;175m"
-set CLR_RED     "\e[38;2;243;139;168m"
+set CLR_MAUVE  "\e[38;2;203;166;247m"
+set CLR_GREEN  "\e[38;2;166;227;161m"
+set CLR_YELLOW "\e[38;2;249;226;175m"
+set CLR_RED    "\e[38;2;243;139;168m"
 set CLR_SUBTEXT "\e[38;2;166;173;200m"
-set CLR_RESET   "\e[0m"
+set CLR_RESET  "\e[0m"
 
 function info
     echo -e "$CLR_MAUVE  $argv$CLR_RESET"
 end
-
 function ok
     echo -e "$CLR_GREEN  $argv$CLR_RESET"
 end
-
 function warn
     echo -e "$CLR_YELLOW  $argv$CLR_RESET" >&2
 end
-
 function err
-    echo -e "$CLR_RED  $argv$CLR_RESET" >&2
+    echo -e "$CLR_RED  $argv$CLR_RESET"
     exit 1
 end
-
 function step
     echo -e "\n$CLR_MAUVE━━ $argv$CLR_RESET"
-end
-
-# Parse package file directly into a fish list variable.
-# usage: parse_pkgs_into <output_var_name> <file> <skip_tags...>
-function parse_pkgs_into
-    set outvar $argv[1]
-    set file   $argv[2]
-    set skips  $argv[3..]
-
-    if not test -f $file
-        err "Missing package file: $file"
-    end
-
-    # clear destination variable first
-    set -e $outvar
-
-    for raw_line in (cat $file)
-        set line (string trim -- $raw_line)
-
-        # skip blank lines and comments
-        if test -z "$line"
-            continue
-        end
-        if string match -qr '^#' -- $line
-            continue
-        end
-
-        # split on spaces/tabs, ignoring repeated whitespace
-        set parts (string split -n ' ' -- $line)
-        set pkg $parts[1]
-        set tag $parts[2]
-
-        if test -z "$pkg"
-            continue
-        end
-
-        if test -n "$tag"
-            if contains -- $tag $skips
-                warn "  skipping $pkg ($tag)"
-                continue
-            end
-        end
-
-        set -a $outvar $pkg
-    end
 end
 
 # ── sanity checks ────────────────────────────────────────────────────────────
@@ -85,7 +36,6 @@ end
 
 if not command -q git
     sudo pacman -S --needed --noconfirm git
-    or err "Failed to install git"
 end
 
 # ── clone dotfiles ───────────────────────────────────────────────────────────
@@ -93,7 +43,6 @@ step "Cloning dotfiles"
 if test -d $DOTFILES_DIR
     warn "~/.dotfiles already exists — pulling latest"
     git -C $DOTFILES_DIR pull --ff-only
-    or err "Failed to update existing dotfiles repo"
 else
     git clone $REPO_URL $DOTFILES_DIR
     or err "Failed to clone repo"
@@ -112,27 +61,23 @@ set HAS_INTEL_CPU 0
 set HAS_AMD_CPU 0
 set HAS_DDCCI 0
 
-if string match -q "*nvidia*" -- $GPU_VENDOR
+if string match -q "*nvidia*" $GPU_VENDOR
     set HAS_NVIDIA 1
     info "GPU: NVIDIA detected"
 end
-
-if string match -q "*amd*" -- $GPU_VENDOR; or string match -q "*radeon*" -- $GPU_VENDOR
+if string match -q "*amd*" $GPU_VENDOR; or string match -q "*radeon*" $GPU_VENDOR
     set HAS_AMD_GPU 1
     info "GPU: AMD detected"
 end
-
-if string match -q "*intel*" -- $GPU_VENDOR
+if string match -q "*intel*" $GPU_VENDOR
     set HAS_INTEL_GPU 1
     info "GPU: Intel detected"
 end
-
-if test "$CPU_VENDOR" = "GenuineIntel"
+if test $CPU_VENDOR = "GenuineIntel"
     set HAS_INTEL_CPU 1
     info "CPU: Intel detected"
 end
-
-if test "$CPU_VENDOR" = "AuthenticAMD"
+if test $CPU_VENDOR = "AuthenticAMD"
     set HAS_AMD_CPU 1
     info "CPU: AMD detected"
 end
@@ -140,7 +85,7 @@ end
 # ddcci only useful with external monitors — ask
 if test $HAS_NVIDIA = 1; or test $HAS_AMD_GPU = 1
     read -l -P "Do you use external DDC/CI monitors (brightness control via ddcutil)? [y/N] " ddcci_ans
-    if string match -qi "y" -- $ddcci_ans
+    if string match -qi "y" $ddcci_ans
         set HAS_DDCCI 1
     end
 end
@@ -151,20 +96,13 @@ if command -q paru
     ok "paru already installed"
 else
     sudo pacman -Syu --noconfirm base-devel
-    or err "Failed to install base-devel"
-
     set tmp (mktemp -d)
     git clone https://aur.archlinux.org/paru.git $tmp/paru
-    or err "Failed to clone paru"
-
-    pushd $tmp/paru >/dev/null
-    or err "Failed to enter paru build directory"
-
-    makepkg -si --noconfirm
-    or err "Failed to build/install paru"
-
-    popd >/dev/null
-    rm -rf $tmp
+    and pushd $tmp/paru
+    and makepkg -si --noconfirm
+    and popd
+    and rm -rf $tmp
+    or err "Failed to install paru"
 end
 
 # ── install packages ─────────────────────────────────────────────────────────
@@ -175,30 +113,51 @@ set aur_file    "$DOTFILES_DIR/packages-aur.txt"
 
 # build skip tags based on hardware
 set skip_tags
-if test $HAS_NVIDIA = 0
-    set skip_tags $skip_tags nvidia
-end
-if test $HAS_INTEL_CPU = 0
-    set skip_tags $skip_tags intel-cpu
-end
-if test $HAS_AMD_CPU = 0
-    set skip_tags $skip_tags amd-cpu
-end
-if test $HAS_DDCCI = 0
-    set skip_tags $skip_tags ddcci
+if test $HAS_NVIDIA = 0;    set skip_tags $skip_tags nvidia;    end
+if test $HAS_INTEL_CPU = 0; set skip_tags $skip_tags intel-cpu; end
+if test $HAS_AMD_CPU = 0;   set skip_tags $skip_tags amd-cpu;   end
+if test $HAS_DDCCI = 0;     set skip_tags $skip_tags ddcci;     end
+
+function parse_pkgs
+    # usage: parse_pkgs <file> <skip_tags...>
+    set file  $argv[1]
+    set skips $argv[2..]
+    set result
+
+    for line in (grep -v '^[[:space:]]*#' $file | grep -v '^[[:space:]]*$')
+        set line (string trim -- $line)
+        set line (string replace -ra '\s+' ' ' -- $line)
+
+        set parts (string split -n ' ' -- $line)
+        set pkg  $parts[1]
+        set tags $parts[2..]
+
+        set should_skip 0
+        for tag in $tags
+            if contains -- $tag $skips
+                warn "  skipping $pkg ($tag)"
+                set should_skip 1
+                break
+            end
+        end
+
+        if test $should_skip = 1
+            continue
+        end
+
+        set result $result $pkg
+    end
+
+    printf '%s\n' $result
 end
 
-parse_pkgs_into pacman_pkgs $pacman_file $skip_tags
-parse_pkgs_into aur_pkgs    $aur_file    $skip_tags
-
-info "pacman package count: "(count $pacman_pkgs)
-info "aur package count: "(count $aur_pkgs)
+set pacman_pkgs (parse_pkgs $pacman_file $skip_tags)
+set aur_pkgs    (parse_pkgs $aur_file    $skip_tags)
 
 if test (count $pacman_pkgs) -gt 0
     sudo pacman -S --needed --noconfirm $pacman_pkgs
     or err "pacman install failed"
 end
-
 if test (count $aur_pkgs) -gt 0
     paru -S --needed --noconfirm $aur_pkgs
     or err "AUR install failed"
@@ -211,7 +170,6 @@ step "Symlinking dotfiles (GNU Stow)"
 
 if not command -q stow
     sudo pacman -S --noconfirm stow
-    or err "Failed to install stow"
 end
 
 set stow_packages (ls -d $DOTFILES_DIR/home/*/ | xargs -n1 basename)
@@ -228,43 +186,31 @@ step "Applying system configs"
 
 # locale
 sudo cp $DOTFILES_DIR/system/etc/locale.conf /etc/locale.conf
-or err "Failed to copy locale.conf"
-
 sudo locale-gen
-or err "locale-gen failed"
 
 # pacman.conf
 sudo cp $DOTFILES_DIR/system/etc/pacman.conf /etc/pacman.conf
-or err "Failed to copy pacman.conf"
 
 # zram
-sudo mkdir -p /etc/systemd
 sudo cp $DOTFILES_DIR/system/etc/systemd/zram-generator.conf /etc/systemd/zram-generator.conf
-or err "Failed to copy zram-generator.conf"
 
 # sddm
 sudo mkdir -p /etc/sddm.conf.d
 sudo cp $DOTFILES_DIR/system/etc/sddm.conf.d/theme.conf /etc/sddm.conf.d/theme.conf
-or err "Failed to copy SDDM theme config"
 
 # udev rules
 if test $HAS_DDCCI = 1
-    sudo mkdir -p /etc/udev/rules.d
     sudo cp $DOTFILES_DIR/system/etc/udev/rules.d/99-ddcci.rules /etc/udev/rules.d/
-    or warn "Failed to copy ddcci udev rule"
-
     sudo udevadm control --reload-rules
-    and ok "ddcci udev rule installed"
-    or warn "Failed to reload udev rules"
+    ok "ddcci udev rule installed"
 end
 
-sudo mkdir -p /etc/snapper/configs
+# snapper config
 sudo cp $DOTFILES_DIR/system/etc/snapper/configs/root /etc/snapper/configs/root
 or warn "snapper config copy failed — run manually"
 
 # limine-snapper-sync
 sudo cp $DOTFILES_DIR/system/etc/limine-snapper-sync.conf /etc/limine-snapper-sync.conf
-or warn "Failed to copy limine-snapper-sync.conf"
 
 ok "System configs applied"
 
@@ -272,7 +218,6 @@ ok "System configs applied"
 step "Installing SDDM theme"
 sudo mkdir -p /usr/share/sddm/themes
 sudo cp -r $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/
-or err "Failed to install SDDM theme"
 ok "SDDM theme installed"
 
 # ── limine bootloader config ─────────────────────────────────────────────────
@@ -328,43 +273,31 @@ set user_services \
 
 # enable linger so user services survive without an active session
 sudo loginctl enable-linger $USER
-or warn "Failed to enable linger for $USER"
 
 # write a one-shot conf.d script that enables services on first login then removes itself
 set once_script "$HOME/.config/fish/conf.d/99-enable-user-services.fish"
 mkdir -p (dirname $once_script)
-or err "Failed to create fish conf.d directory"
-
 echo "# one-shot: enable user systemd services on first login" > $once_script
 for svc in $user_services
     echo "systemctl --user enable $svc" >> $once_script
 end
 echo "rm -- (status filename)" >> $once_script
-
 ok "User services will be enabled on first Hyprland login"
 
 # ── set fish as default shell ────────────────────────────────────────────────
 step "Setting Fish as default shell"
-set fish_path (command -s fish)
-if test -z "$fish_path"
-    err "Could not find fish binary"
+set fish_path (which fish)
+if not grep -q $fish_path /etc/shells
+    echo $fish_path | sudo tee -a /etc/shells
 end
-
-if not grep -q "^$fish_path\$" /etc/shells
-    echo $fish_path | sudo tee -a /etc/shells >/dev/null
-    or err "Failed to add fish to /etc/shells"
-end
-
 chsh -s $fish_path
-or warn "Failed to change default shell automatically"
 ok "Default shell set to Fish"
 
 # ── snapper setup ────────────────────────────────────────────────────────────
 step "Setting up Snapper"
 if not test -f /etc/snapper/configs/root
     sudo snapper -c root create-config /
-    and ok "Snapper root config created"
-    or warn "Failed to create Snapper root config"
+    ok "Snapper root config created"
 else
     ok "Snapper root config already exists"
 end
