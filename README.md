@@ -20,6 +20,16 @@ The installer will:
 - Enable system + user services
 - Set Fish as default shell
 
+## Manual post-install steps
+
+1. **Limine**: Set your disk's `PARTUUID` in `/boot/limine.conf`
+   Find it with: `blkid -s PARTUUID -o value /dev/sdXY`
+   Then: `sudo limine-enroll-config`
+
+2. **Snapper**: If subvolume layout differs, run `sudo snapper -c root create-config /`
+
+3. **NVIDIA**: Ensure cmdline includes `nvidia_drm.modeset=1 nvidia_drm.fbdev=1`
+
 ## Repo layout
 
 ```
@@ -73,16 +83,6 @@ arch-rice/
 | `intel-cpu` | Not Intel CPU               |
 | `amd-cpu`   | Not AMD CPU                 |
 | `ddcci`     | User declines DDC/CI prompt |
-
-## Manual post-install steps
-
-1. **Limine**: Set your disk's `PARTUUID` in `/boot/limine.conf`
-   Find it with: `blkid -s PARTUUID -o value /dev/sdXY`
-   Then: `sudo limine-enroll-config`
-
-2. **Snapper**: If subvolume layout differs, run `sudo snapper -c root create-config /`
-
-3. **NVIDIA**: Ensure cmdline includes `nvidia_drm.modeset=1 nvidia_drm.fbdev=1`
 
 ## What's intentionally NOT exported
 
