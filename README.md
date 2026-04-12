@@ -7,7 +7,7 @@ Arch Linux + Hyprland setup. Catppuccin Mocha / Mauve.
 Install arch via `archinstall`. It is important that you select these options: `btrfs`, `hyprland`, `limine` and `sddm`. Also you need to install fish before running the install script via: `sudo pacman -Syu fish`.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/install.fish | fish
+curl -fsSL https://raw.githubusercontent.com/nwrenger/arch-rice/main/install.fish | fish
 ```
 
 The installer will:
