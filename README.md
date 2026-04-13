@@ -71,7 +71,6 @@ arch-rice/
 │   └── wallpaper/        → Pictures/wallpaper/
 │
 └── system/               ← copied to / with sudo
-└── system/               ← copied to / with sudo
     ├── etc/
     │   ├── locale.conf
     │   ├── pacman.conf
