@@ -280,16 +280,6 @@ end
 echo "rm -- (status filename)" >> $once_script
 ok "User services will be enabled on first Hyprland login"
 
-# ── set fish as default shell ────────────────────────────────────────────────
-step "Setting Fish as default shell"
-set fish_path (which fish)
-if not grep -q $fish_path /etc/shells
-    echo $fish_path | sudo tee -a /etc/shells
-end
-chsh -s $fish_path
-or err "Failed to set default shell, execute: chsh -s $fish_path"
-ok "Default shell set to Fish"
-
 # ── snapper setup ────────────────────────────────────────────────────────────
 step "Setting up Snapper"
 if not test -f /etc/snapper/configs/root
@@ -311,11 +301,12 @@ echo -e "$CLR_GREEN╔═══════════════════�
 echo -e "║  Setup complete!                                     ║"
 echo -e "║                                                      ║"
 echo -e "║  Remaining manual steps:                             ║"
-echo -e "║  1. Open the template:                               ║"
+echo -e "║  1. Set default shell: chsh -s /bin/fish             ║"
+echo -e "║  2. Open the template:                               ║"
 echo -e "║       \$HOME/.config/limine.conf.template             ║"
-echo -e "║  2. Copy the options block into /boot/limine.conf    ║"
-echo -e "║  3. Run: sudo limine-enroll-config                   ║"
-echo -e "║  4. Reboot                                           ║"
+echo -e "║  3. Copy the options block into /boot/limine.conf    ║"
+echo -e "║  4. Run: sudo limine-enroll-config                   ║"
+echo -e "║  5. Reboot                                           ║"
 echo -e "╚══════════════════════════════════════════════════════╝$CLR_RESET"
 echo ""
 echo -e "$CLR_YELLOW  You can now remove archinstall defaults you no longer need:$CLR_RESET"
