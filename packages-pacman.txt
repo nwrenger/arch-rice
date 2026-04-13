@@ -14,13 +14,13 @@ cups-pk-helper
 ddcutil ddcci
 discord
 dkms nvidia
-dunst
 efibootmgr
 fastfetch
 fd
 fish
 fzf
 git
+gnome-boxes
 gnome-keyring
 gnome-themes-extra
 gst-plugin-pipewire
@@ -73,6 +73,7 @@ sddm
 smartmontools
 snapper
 sof-firmware
+sshfs
 starship
 steam
 sudo

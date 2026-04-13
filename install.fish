@@ -5,12 +5,12 @@ set REPO_URL "https://github.com/nwrenger/arch-rice"
 set DOTFILES_DIR "$HOME/.dotfiles"
 
 # ── colors (catppuccin mocha) ────────────────────────────────────────────────
-set CLR_MAUVE  "\e[38;2;203;166;247m"
-set CLR_GREEN  "\e[38;2;166;227;161m"
+set CLR_MAUVE "\e[38;2;203;166;247m"
+set CLR_GREEN "\e[38;2;166;227;161m"
 set CLR_YELLOW "\e[38;2;249;226;175m"
-set CLR_RED    "\e[38;2;243;139;168m"
+set CLR_RED "\e[38;2;243;139;168m"
 set CLR_SUBTEXT "\e[38;2;166;173;200m"
-set CLR_RESET  "\e[0m"
+set CLR_RESET "\e[0m"
 
 function info
     echo -e "$CLR_MAUVE  $argv$CLR_RESET"
@@ -173,21 +173,18 @@ end
 
 ok "Packages installed"
 
-# ── stow dotfiles ────────────────────────────────────────────────────────────
-step "Symlinking dotfiles (GNU Stow)"
+# ── copy dotfiles ────────────────────────────────────────────────────────────
+step "Copying dotfiles to \$HOME"
 
-if not command -q stow
-    sudo pacman -S --noconfirm stow
+for pkg_dir in $DOTFILES_DIR/home/*/
+    set pkg (basename $pkg_dir)
+    info "Copying $pkg"
+    # -rT: merge into target dir, overwrite existing files
+    cp -rT $pkg_dir $HOME
+    or warn "Copy failed for $pkg — check for permission errors"
 end
 
-set stow_packages (ls -d $DOTFILES_DIR/home/*/ | xargs -n1 basename)
-for pkg in $stow_packages
-    info "Stowing $pkg"
-    stow --dir=$DOTFILES_DIR/home --target=$HOME $pkg
-    or warn "Conflict in $pkg — resolve manually"
-end
-
-ok "Dotfiles linked"
+ok "Dotfiles copied"
 
 # ── system configs (/etc) ────────────────────────────────────────────────────
 step "Applying system configs"
@@ -195,9 +192,6 @@ step "Applying system configs"
 # locale
 sudo cp $DOTFILES_DIR/system/etc/locale.conf /etc/locale.conf
 sudo locale-gen
-
-# zram
-sudo cp $DOTFILES_DIR/system/etc/systemd/zram-generator.conf /etc/systemd/zram-generator.conf
 
 # sddm
 sudo mkdir -p /etc/sddm.conf.d
@@ -222,17 +216,14 @@ ok "System configs applied"
 # ── sddm theme ───────────────────────────────────────────────────────────────
 step "Installing SDDM theme"
 sudo mkdir -p /usr/share/sddm/themes
-sudo cp -r $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/
+sudo cp -rT $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/
 ok "SDDM theme installed"
 
 # ── limine bootloader config ─────────────────────────────────────────────────
-step "Configuring Limine"
-warn "Limine config contains your disk's PARTUUID — cannot copy blindly."
-info "Template saved at: $DOTFILES_DIR/system/boot/limine.conf.template"
-info "Run this to get your PARTUUID:"
-echo -e "$CLR_SUBTEXT    blkid -s PARTUUID -o value /dev/sdXY$CLR_RESET"
-info "Then manually set it in /boot/limine.conf and run:"
-echo -e "$CLR_SUBTEXT    sudo limine-enroll-config && sudo limine-reset-enroll$CLR_RESET"
+step "Staging Limine config template"
+set limine_template "$HOME/.config/limine.conf.template"
+cp $DOTFILES_DIR/system/boot/limine.conf.template $limine_template
+ok "Template saved to $limine_template"
 
 # ── enable system services ───────────────────────────────────────────────────
 step "Enabling system services"
@@ -315,14 +306,21 @@ end
 
 # ── done ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "$CLR_GREEN╔══════════════════════════════════════╗"
-echo -e "║  Setup complete!                     ║"
-echo -e "║                                      ║"
-echo -e "║  Remaining manual steps:             ║"
-echo -e "║  1. Set PARTUUID in limine.conf      ║"
-echo -e "║  2. Run limine-enroll-config         ║"
-echo -e "║  3. Log out and back in (or reboot)  ║"
-echo -e "╚══════════════════════════════════════╝$CLR_RESET"
+echo -e "$CLR_GREEN╔══════════════════════════════════════════════════════╗"
+echo -e "║  Setup complete!                                     ║"
+echo -e "║                                                      ║"
+echo -e "║  Remaining manual steps:                             ║"
+echo -e "║  1. Open the template:                               ║"
+echo -e "║       $HOME/.config/limine.conf.template             ║"
+echo -e "║  2. Copy the options block into /boot/limine.conf    ║"
+echo -e "║  3. Run: sudo limine-enroll-config                   ║"
+echo -e "║  4. Reboot                                           ║"
+echo -e "╚══════════════════════════════════════════════════════╝$CLR_RESET"
 echo ""
 echo -e "$CLR_YELLOW  You can now remove archinstall defaults you no longer need:$CLR_RESET"
 echo -e "$CLR_SUBTEXT  sudo pacman -Rns dunst kitty dolphin wofi polkit-kde-agent slurp$CLR_RESET"
+echo ""
+
+# ── cleanup ──────────────────────────────────────────────────────────────────
+rm -rf $DOTFILES_DIR
+echo -e "$CLR_SUBTEXT  (.dotfiles removed)$CLR_RESET"
