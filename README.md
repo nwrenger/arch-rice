@@ -24,19 +24,28 @@ The installer will:
 - Copy all home dotfiles directly into `$HOME`
 - Copy system configs
 - Enable system + user services
-- Set Fish as default shell
 - Clean up (`~/.dotfiles` removed after install)
+- Give instructions for the next manual steps
 
 ## Manual post-install steps
 
-1. **Limine**: A template with your options is staged at `~/.config/limine.conf.template`.
-   Copy the options block into `/boot/limine.conf`, then:
+1. **Default Shell**: Set the default shell via
+
+```bash
+chsh -s /bin/fish
+```
+
+2. **Mullvad**: `mullvad account login`
+
+3. **Limine**: A template with your options is staged at `~/.config/limine.conf.template`.
+   Copy the options and config into `/boot/limine.conf`, rename the OS to `Arch Linux` and set the kernel to `Linux`.
+   Then set `ESP_PATH=/boot` in `/etc/default/limine` and run:
 
 ```bash
    sudo limine-enroll-config
 ```
 
-2. **Snapper**: If subvolume layout differs, run `sudo snapper -c root create-config /`
+4. **Snapper (Optional)**: If subvolume layout differs, run `sudo snapper -c root create-config /`
 
 ## Repo layout
 

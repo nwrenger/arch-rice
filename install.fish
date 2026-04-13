@@ -302,6 +302,7 @@ echo -e "║  Setup complete!                                                ║
 echo -e "║                                                                 ║"
 echo -e "║  Remaining manual steps:                                        ║"
 echo -e "║  1. Log into Mullvad: mullvad account login                     ║"
+echo -e "║  2. Set default shell: chsh -s /bin/fish                        ║"
 echo -e "║  2. Open the template:                                          ║"
 echo -e "║       \$HOME/.config/limine.conf.template                        ║"
 echo -e "║  3. Copy the options an config into /boot/limine.conf           ║"
