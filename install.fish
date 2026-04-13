@@ -305,6 +305,8 @@ echo -e "║  1. Log into Mullvad: mullvad account login                      �
 echo -e "║  2. Open the template:                                           ║"
 echo -e "║       \$HOME/.config/limine.conf.template                         ║"
 echo -e "║  3. Copy the options an config into /boot/limine.conf            ║"
+echo -e "║     Also rename OS to 'Arch Linux' and set kernel to 'Linux'     ║"
+echo -e "║  4. Set 'ESP_PATH=/boot' inside /etc/default/limine              ║"
 echo -e "║  4. Run: sudo limine-enroll-config                               ║"
 echo -e "║  5. Reboot                                                       ║"
 echo -e "╚═════════════════════════════════════════════════════════════════╝$CLR_RESET"
