@@ -110,7 +110,7 @@ step "Configuring pacman repos"
 sudo cp $DOTFILES_DIR/system/etc/pacman.conf /etc/pacman.conf
 or err "Failed to copy pacman.conf"
 
-sudo pacman -Sy
+sudo pacman -Syu
 or err "Failed to refresh pacman databases"
 
 # ── install packages ─────────────────────────────────────────────────────────
@@ -163,11 +163,11 @@ set pacman_pkgs (parse_pkgs $pacman_file $skip_tags)
 set aur_pkgs    (parse_pkgs $aur_file    $skip_tags)
 
 if test (count $pacman_pkgs) -gt 0
-    sudo pacman -S --needed --noconfirm $pacman_pkgs
+    sudo pacman -Syu --noconfirm $pacman_pkgs
     or err "pacman install failed"
 end
 if test (count $aur_pkgs) -gt 0
-    paru -S --needed --noconfirm $aur_pkgs
+    paru -Syu --noconfirm $aur_pkgs
     or err "AUR install failed"
 end
 
@@ -254,9 +254,7 @@ for svc in $system_services
 end
 
 # ── enable user services ─────────────────────────────────────────────────────
-# systemctl --user requires a running user session (graphical-session.target)
-# Since we're pre-first-login, write a one-shot Fish login script instead.
-step "Scheduling user services (enabled on first login)"
+step "Enabling user services"
 
 set user_services \
     elephant.service \
@@ -267,18 +265,11 @@ set user_services \
     walker.service \
     waybar.service
 
-# enable linger so user services survive without an active session
-sudo loginctl enable-linger $USER
-
-# write a one-shot conf.d script that enables services on first login then removes itself
-set once_script "$HOME/.config/fish/conf.d/99-enable-user-services.fish"
-mkdir -p (dirname $once_script)
-echo "# one-shot: enable user systemd services on first login" > $once_script
 for svc in $user_services
-    echo "systemctl --user enable $svc" >> $once_script
+    systemctl --user enable --now $svc
+    and ok "  enabled $svc"
+    or warn "  failed to enable $svc"
 end
-echo "rm -- (status filename)" >> $once_script
-ok "User services will be enabled on first Hyprland login"
 
 # ── snapper setup ────────────────────────────────────────────────────────────
 step "Setting up Snapper"
