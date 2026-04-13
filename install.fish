@@ -195,7 +195,7 @@ sudo locale-gen
 
 # sddm
 sudo mkdir -p /etc/sddm.conf.d
-sudo cp $DOTFILES_DIR/system/etc/sddm.conf.d/theme.conf /etc/sddm.conf.d/theme.conf
+sudo cp -rT $DOTFILES_DIR/system/etc/sddm.conf.d/ /etc/sddm.conf.d/
 
 # udev rules
 if test $HAS_DDCCI = 1
@@ -216,7 +216,7 @@ ok "System configs applied"
 # ── sddm theme ───────────────────────────────────────────────────────────────
 step "Installing SDDM theme"
 sudo mkdir -p /usr/share/sddm/themes
-sudo cp -rT $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/
+sudo cp -rT $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/where_is_my_sddm_theme
 ok "SDDM theme installed"
 
 # ── limine bootloader config ─────────────────────────────────────────────────
@@ -287,6 +287,7 @@ if not grep -q $fish_path /etc/shells
     echo $fish_path | sudo tee -a /etc/shells
 end
 chsh -s $fish_path
+or err "Failed to set default shell, execute: chsh -s $fish_path"
 ok "Default shell set to Fish"
 
 # ── snapper setup ────────────────────────────────────────────────────────────
@@ -311,14 +312,14 @@ echo -e "║  Setup complete!                                     ║"
 echo -e "║                                                      ║"
 echo -e "║  Remaining manual steps:                             ║"
 echo -e "║  1. Open the template:                               ║"
-echo -e "║       $HOME/.config/limine.conf.template             ║"
+echo -e "║       \$HOME/.config/limine.conf.template             ║"
 echo -e "║  2. Copy the options block into /boot/limine.conf    ║"
 echo -e "║  3. Run: sudo limine-enroll-config                   ║"
 echo -e "║  4. Reboot                                           ║"
 echo -e "╚══════════════════════════════════════════════════════╝$CLR_RESET"
 echo ""
 echo -e "$CLR_YELLOW  You can now remove archinstall defaults you no longer need:$CLR_RESET"
-echo -e "$CLR_SUBTEXT  sudo pacman -Rns dunst kitty dolphin wofi polkit-kde-agent slurp$CLR_RESET"
+echo -e "$CLR_SUBTEXT  sudo pacman -Rns dunst kitty dolphin wofi polkit-kde-agent$CLR_RESET"
 echo ""
 
 # ── cleanup ──────────────────────────────────────────────────────────────────
