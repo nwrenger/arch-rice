@@ -63,7 +63,7 @@
     "return-type": "json",
     "interval": 2,
     "on-click": "menu-vpn",
-    "signal": 2,
+    "signal": 1,
   },
   "network": {
     "format-wifi": "󰤨 {signalStrength}%",

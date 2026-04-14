@@ -2,7 +2,7 @@
 
 set s (mullvad status)
 
-if string match -q "*Connected*" $s
+if string match -q "*Connected*" $s || string match -q "*Connecting*" $s
     mullvad disconnect
     swayosd-client --custom-message "VPN Disconnecting..." --custom-icon network-offline
 else
@@ -10,4 +10,4 @@ else
     swayosd-client --custom-message "VPN Connecting..." --custom-icon network-transmit-receive
 end
 
-pkill -RTMIN+2 waybar
+pkill -RTMIN+1 waybar
