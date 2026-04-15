@@ -7,6 +7,7 @@ elephant-providerlist
 elephant-websearch
 enpass-bin
 grimblast-git
+heroic-games-launcher-bin
 hyprshutdown
 limine-entry-tool
 limine-snapper-sync
