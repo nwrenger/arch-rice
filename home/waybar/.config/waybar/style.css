@@ -39,6 +39,7 @@ tooltip label {
 #clock,
 #custom-mic,
 #custom-vpn,
+#custom-uxplay,
 #cpu,
 #pulseaudio,
 #network,
@@ -71,11 +72,15 @@ tooltip label {
     color: #cba6f7;
 }
 
+#custom-uxplay {
+    color: #b4befe;
+}
+
 #bluetooth {
     color: #89b4fa;
 }
 
-#bluetooth.connected {
+#bluetooth {
     color: #89dceb;
 }
 
@@ -85,6 +90,7 @@ tooltip label {
 
 #custom-mic.muted,
 #custom-vpn.disconnected,
+#custom-uxplay.off,
 #bluetooth.disabled,
 #pulseaudio.muted,
 #network.disconnected,

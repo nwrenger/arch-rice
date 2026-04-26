@@ -229,6 +229,7 @@ ok "Template saved to $limine_template"
 step "Enabling system services"
 
 set system_services \
+    avahi-daemon.service \
     bluetooth.service \
     cups.service \
     iwd.service \

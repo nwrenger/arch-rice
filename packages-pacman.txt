@@ -1,5 +1,6 @@
 7zip
 alacritty
+amberol
 baobab
 base
 base-devel
@@ -73,6 +74,7 @@ sddm
 smartmontools
 snapper
 sof-firmware
+sqlitebrowser
 sshfs
 starship
 steam

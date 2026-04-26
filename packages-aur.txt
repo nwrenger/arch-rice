@@ -9,11 +9,16 @@ enpass-bin
 grimblast-git
 heroic-games-launcher-bin
 hyprshutdown
+iriunwebcam-bin
 limine-entry-tool
 limine-snapper-sync
 localsend-bin
+opentabletdriver
+osu-lazer-bin
+osu-mime
 stoat-desktop-bin
 ttf-ia-writer
+uxplay
 walker
 xclicker
 zen-browser-bin

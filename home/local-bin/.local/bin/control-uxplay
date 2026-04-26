@@ -1,0 +1,61 @@
+#!/usr/bin/env fish
+# Manages uxplay as a background process for the Waybar module.
+
+set PIDFILE (string join "" (set -q XDG_RUNTIME_DIR; and echo $XDG_RUNTIME_DIR; or echo /tmp) "/uxplay.pid")
+set SERVER_NAME "nils"
+
+function is_running
+    test -f $PIDFILE; and kill -0 (cat $PIDFILE) 2>/dev/null
+end
+
+function uxplay_start
+    if is_running
+        echo "already running" >&2
+        return 0
+    end
+    uxplay -n $SERVER_NAME -hls &>/dev/null &
+    echo $last_pid > $PIDFILE
+
+    swayosd-client --custom-message "AirPlay active" --custom-icon network-wireless
+
+    pkill -RTMIN+3 waybar
+end
+
+function uxplay_stop
+    if not is_running
+        echo "not running" >&2
+        return 0
+    end
+    kill (cat $PIDFILE) 2>/dev/null
+    rm -f $PIDFILE
+
+    swayosd-client --custom-message "AirPlay off" --custom-icon network-wireless-offline
+
+    pkill -RTMIN+3 waybar
+end
+
+function uxplay_waybar
+    if is_running
+        printf '{"text":"󱟲","tooltip":"AirPlay active","class":"active"}' $SERVER_NAME
+    else
+        printf '{"text":"󰀸","tooltip":"AirPlay off","class":"off"}'
+    end
+end
+
+switch $argv[1]
+    case start
+        uxplay_start
+    case stop
+        uxplay_stop
+    case toggle
+        if is_running
+            uxplay_stop
+        else
+            uxplay_start
+        end
+    case waybar
+        uxplay_waybar
+    case '*'
+        echo "Usage: control-uxplay {start|stop|toggle|waybar}" >&2
+        exit 1
+end

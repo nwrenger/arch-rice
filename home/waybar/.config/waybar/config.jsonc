@@ -10,6 +10,7 @@
     "pulseaudio",
     "custom/mic",
     "custom/vpn",
+    "custom/uxplay",
     "network",
     "bluetooth",
     "cpu",
@@ -63,7 +64,14 @@
     "return-type": "json",
     "interval": 2,
     "on-click": "menu-vpn",
-    "signal": 1,
+    "signal": 2,
+  },
+  "custom/uxplay": {
+    "exec": "control-uxplay waybar",
+    "interval": 2,
+    "return-type": "json",
+    "on-click": "control-uxplay toggle",
+    "signal": 3,
   },
   "network": {
     "format-wifi": "󰤨 {signalStrength}%",
