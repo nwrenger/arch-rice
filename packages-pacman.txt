@@ -4,6 +4,7 @@ amberol
 baobab
 base
 base-devel
+bat
 bluetui
 bluez
 bluez-utils

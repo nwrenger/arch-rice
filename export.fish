@@ -151,6 +151,10 @@ else
     warn "  SDDM theme not found at $theme_src"
 end
 
+# ── SDDM Xsetup script ───────────────────────────────────────────────────────
+step "Exporting SDDM Xsetup"
+sys_cp /usr/share/sddm/scripts/Xsetup  sddm-scripts/Xsetup
+
 # ── wallpaper ────────────────────────────────────────────────────────────────
 step "Exporting wallpaper"
 home_cp wallpaper Pictures/wallpaper/1-totoro.png

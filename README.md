@@ -89,6 +89,8 @@ arch-rice/
     │   └── udev/rules.d/99-ddcci.rules
     ├── boot/
     │   └── limine.conf.template  ← options only, no entries, no PARTUUID
+    ├── sddm-scripts/
+    │   └── Xsetup                ← xrandr monitor layout for SDDM (X11)
     └── sddm-theme/
         └── where_is_my_sddm_theme/
 ```

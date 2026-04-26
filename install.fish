@@ -219,6 +219,13 @@ sudo mkdir -p /usr/share/sddm/themes
 sudo cp -rT $DOTFILES_DIR/system/sddm-theme/where_is_my_sddm_theme /usr/share/sddm/themes/where_is_my_sddm_theme
 ok "SDDM theme installed"
 
+# ── sddm xsetup script ───────────────────────────────────────────────────────
+step "Installing SDDM Xsetup"
+sudo mkdir -p /usr/share/sddm/scripts
+sudo cp $DOTFILES_DIR/system/sddm-scripts/Xsetup /usr/share/sddm/scripts/Xsetup
+sudo chmod +x /usr/share/sddm/scripts/Xsetup
+ok "SDDM Xsetup installed"
+
 # ── limine bootloader config ─────────────────────────────────────────────────
 step "Staging Limine config template"
 set limine_template "$HOME/.config/limine.conf.template"
