@@ -1,5 +1,5 @@
 catppuccin-cursors-mocha
-ddcci-hotplugd
+ddcci-driver-linux-dkms-git ddcci
 elephant
 elephant-calc
 elephant-desktopapplications
