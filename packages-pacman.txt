@@ -1,6 +1,5 @@
 7zip
 alacritty
-amberol
 baobab
 base
 base-devel
@@ -17,6 +16,7 @@ ddcutil ddcci
 discord
 dkms nvidia
 efibootmgr
+exfatprogs
 fastfetch
 fd
 fish

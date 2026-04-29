@@ -1,8 +1,8 @@
 ### Read more at config document: https://github.com/Limine-Bootloader/Limine/blob/v11.x/CONFIG.md
 
 ### Theme
-interface_branding: ICU
-interface_branding_colour: 5
+interface_branding: icu
+interface_branding_colour: f5c2e7
 interface_help_hidden: yes
 interface_resolution: 1920x1080
 
@@ -19,7 +19,7 @@ hash_mismatch_panic: no
 
 ### Hide Limine
 #quiet: yes
-timeout: 3
+timeout: 1
 
 ### Boot the default entry
 default_entry: 1
