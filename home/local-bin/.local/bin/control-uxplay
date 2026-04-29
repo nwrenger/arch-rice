@@ -13,6 +13,7 @@ function uxplay_start
         echo "already running" >&2
         return 0
     end
+
     uxplay -n $SERVER_NAME -hls &>/dev/null &
     echo $last_pid > $PIDFILE
 
@@ -26,6 +27,7 @@ function uxplay_stop
         echo "not running" >&2
         return 0
     end
+
     kill (cat $PIDFILE) 2>/dev/null
     rm -f $PIDFILE
 

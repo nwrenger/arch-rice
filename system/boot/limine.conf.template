@@ -1,6 +1,6 @@
-timeout: 3
-default_entry: 1
-remember_last_entry: yes
+### Read more at config document: https://github.com/Limine-Bootloader/Limine/blob/v11.x/CONFIG.md
+
+### Theme
 interface_branding: ICU
 interface_branding_colour: 5
 interface_help_hidden: yes
@@ -14,3 +14,14 @@ term_palette_bright: 585b70;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;a6adc8
 term_background: cc1e1e2e
 term_foreground: cdd6f4
 
+### Show warning instead of panic on hash mismatch
+hash_mismatch_panic: no
+
+### Hide Limine
+#quiet: yes
+timeout: 3
+
+### Boot the default entry
+default_entry: 1
+remember_last_entry: yes
+ 

@@ -1,4 +1,3 @@
-SUBSYSTEM=="i2c-dev", ACTION=="add", \
-  ATTR{name}=="*", \
-  RUN+="/bin/sh -c 'echo ddcci 0x37 > /sys/bus/i2c/devices/%k/new_device'"
-
+# /etc/udev/rules.d/99-ddcci.rules
+ACTION=="add", SUBSYSTEM=="i2c-dev", KERNEL=="i2c-[67]", \
+  RUN+="/bin/sh -c 'sleep 3; echo ddcci 0x37 > /sys/bus/i2c/devices/%k/new_device 2>/dev/null || true'"
