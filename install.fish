@@ -197,13 +197,6 @@ sudo locale-gen
 sudo mkdir -p /etc/sddm.conf.d
 sudo cp -rT $DOTFILES_DIR/system/etc/sddm.conf.d/ /etc/sddm.conf.d/
 
-# udev rules
-if test $HAS_DDCCI = 1
-    sudo cp $DOTFILES_DIR/system/etc/udev/rules.d/99-ddcci.rules /etc/udev/rules.d/
-    sudo udevadm control --reload-rules
-    ok "ddcci udev rule installed"
-end
-
 # snapper config
 sudo cp $DOTFILES_DIR/system/etc/snapper/configs/root /etc/snapper/configs/root
 or warn "snapper config copy failed — run manually"
@@ -239,6 +232,7 @@ set system_services \
     avahi-daemon.service \
     bluetooth.service \
     cups.service \
+    ddcci-hotplugd.service \
     iwd.service \
     limine-snapper-sync.service \
     mullvad-daemon.service \

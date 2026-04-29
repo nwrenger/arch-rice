@@ -6,10 +6,13 @@ set choice (printf "%s\n" $options | walker --dmenu --nosearch --minwidth 200 --
 switch $choice
     case "󰐥 Shutdown"
         hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'
+        or shutdown -P 0
     case "󰜉 Reboot"
         hyprshutdown -t 'Restarting...' --post-cmd 'reboot'
+        or reboot
     case "󰍃 Logout"
         hyprshutdown -t 'Logging out...'
+        or hyprctl dispatch exit
     case "󰤄 Suspend"
         systemctl suspend
     case ""

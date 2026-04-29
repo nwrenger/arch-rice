@@ -117,7 +117,6 @@ end
 
 sys_cp /etc/locale.conf           etc/locale.conf
 sys_cp /etc/pacman.conf           etc/pacman.conf
-sys_cp /etc/udev/rules.d/99-ddcci.rules  etc/udev/rules.d/99-ddcci.rules
 sys_cp /etc/limine-snapper-sync.conf  etc/limine-snapper-sync.conf
 sys_cp /etc/sddm.conf.d           etc/sddm.conf.d
 
