@@ -1,6 +1,6 @@
 background-color=#1e1e2e
 text-color=#cdd6f4
-border-color=#cba6f7ff
+border-color=#cba6f7
 border-radius=9
 border-size=2
 font=FiraCode Nerd Font 11
@@ -16,9 +16,12 @@ max-icon-size=64
 
 [urgency=low]
 default-timeout=3000
+text-color=#a6adc8
+border-color=#6c7086
 
 [urgency=normal]
 default-timeout=5000
 
-[urgency=high]
+[urgency=critical]
 default-timeout=0
+border-color=#f38ba8

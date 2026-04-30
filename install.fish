@@ -110,6 +110,12 @@ step "Configuring pacman repos"
 sudo cp $DOTFILES_DIR/system/etc/pacman.conf /etc/pacman.conf
 or err "Failed to copy pacman.conf"
 
+if test -e $DOTFILES_DIR/system/etc/pacman.d/hooks/fix-hyprshutdown.hook
+    sudo mkdir -p /etc/pacman.d/hooks
+    and sudo cp $DOTFILES_DIR/system/etc/pacman.d/hooks/fix-hyprshutdown.hook /etc/pacman.d/hooks/fix-hyprshutdown.hook
+    or err "Failed to copy fix-hyprshutdown pacman hook"
+end
+
 sudo pacman -Syu
 or err "Failed to refresh pacman databases"
 

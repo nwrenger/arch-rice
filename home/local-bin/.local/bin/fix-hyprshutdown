@@ -1,0 +1,4 @@
+#!/usr/bin/env fish
+# Use to fix broken hyprshutdown.
+
+paru -S --rebuild --noconfirm hyprshutdown
