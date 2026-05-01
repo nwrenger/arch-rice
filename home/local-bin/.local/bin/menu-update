@@ -112,5 +112,4 @@ end
 
 if restart-prompt
     hyprshutdown -t 'Restarting...' --post-cmd 'reboot'
-    or reboot
 end
