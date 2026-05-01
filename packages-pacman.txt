@@ -19,6 +19,7 @@ efibootmgr
 exfatprogs
 fastfetch
 fd
+fio
 fish
 fzf
 git
@@ -35,6 +36,7 @@ hyprutils
 imagemagick
 impala
 imv
+inotify-tools
 intel-ucode intel-cpu
 iwd
 jq

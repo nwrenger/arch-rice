@@ -1,0 +1,3 @@
+TARGET_OS_NAME="Arch Linux"
+ESP_PATH="/boot"
+FIND_BOOTLOADERS=no

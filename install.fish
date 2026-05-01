@@ -214,8 +214,9 @@ end
 sudo cp $DOTFILES_DIR/system/etc/snapper/configs/root /etc/snapper/configs/root
 or warn "snapper config copy failed — run manually"
 
-# limine-snapper-sync
-sudo cp $DOTFILES_DIR/system/etc/limine-snapper-sync.conf /etc/limine-snapper-sync.conf
+# limine defaults
+sudo mkdir -p /etc/default
+sudo cp $DOTFILES_DIR/system/etc/default/limine /etc/default/limine
 
 ok "System configs applied"
 
