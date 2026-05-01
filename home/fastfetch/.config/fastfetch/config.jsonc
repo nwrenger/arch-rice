@@ -38,7 +38,10 @@
     "os",
     "wm",
     "memory",
-    "disk",
+    {
+      "type": "disk",
+      "folders": "/",
+    },
     "packages",
     "uptime",
     {
