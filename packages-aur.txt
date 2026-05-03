@@ -1,10 +1,10 @@
 catppuccin-cursors-mocha
 ddcci-driver-linux-dkms-git ddcci
-elephant
-elephant-calc
-elephant-desktopapplications
-elephant-providerlist
-elephant-websearch
+elephant-bin
+elephant-calc-bin
+elephant-desktopapplications-bin
+elephant-providerlist-bin
+elephant-websearch-bin
 enpass-bin
 grimblast-git
 heroic-games-launcher-bin
@@ -19,6 +19,6 @@ osu-mime
 stoat-desktop-bin
 ttf-ia-writer
 uxplay
-walker
+walker-bin
 xclicker
 zen-browser-bin

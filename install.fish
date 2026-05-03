@@ -82,12 +82,30 @@ if test $CPU_VENDOR = "AuthenticAMD"
     info "CPU: AMD detected"
 end
 
-# ddcci only useful with external monitors — ask
-if test $HAS_NVIDIA = 1; or test $HAS_AMD_GPU = 1
-    read -l -P "Do you use external DDC/CI monitors (brightness control via ddcutil)? [y/N] " ddcci_ans
-    if string match -qi "y" $ddcci_ans
-        set HAS_DDCCI 1
-    end
+if test $HAS_NVIDIA = 0; and test $HAS_AMD_GPU = 0; and test $HAS_INTEL_GPU = 0
+    warn "  GPU: no supported vendor detected"
+end
+if test $HAS_INTEL_CPU = 0; and test $HAS_AMD_CPU = 0
+    warn "  CPU: no supported vendor detected"
+end
+
+echo
+info "Hardware detection summary:"
+echo -e "$CLR_SUBTEXT  NVIDIA GPU: $HAS_NVIDIA$CLR_RESET"
+echo -e "$CLR_SUBTEXT  AMD GPU:    $HAS_AMD_GPU$CLR_RESET"
+echo -e "$CLR_SUBTEXT  Intel GPU:  $HAS_INTEL_GPU$CLR_RESET"
+echo -e "$CLR_SUBTEXT  Intel CPU:  $HAS_INTEL_CPU$CLR_RESET"
+echo -e "$CLR_SUBTEXT  AMD CPU:    $HAS_AMD_CPU$CLR_RESET"
+echo
+
+read -l -P (set_color green)"  Continue with this detected hardware profile?"(set_color brblack)" [y/N] "(set_color normal) hardware_ans
+if not string match -qi "y" $hardware_ans
+    err "Installation cancelled. Edit install.fish or check hardware detection before retrying."
+end
+
+read -l -P (set_color green)"  Install DDC/CI monitor support for external monitor brightness control?"(set_color brblack)" [y/N] "(set_color normal) ddcci_ans
+if string match -qi "y" $ddcci_ans
+    set HAS_DDCCI 1
 end
 
 # ── install paru ─────────────────────────────────────────────────────────────
