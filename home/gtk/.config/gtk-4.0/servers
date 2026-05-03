@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0"
+      xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
+>
+  <bookmark href="smb://192.168.177.4/" added="2026-05-03T00:51:04.691607Z" modified="2026-05-03T00:51:04.691616Z" visited="2026-05-03T00:51:04.691610Z">
+    <title>Windows shares on 192.168.177.4</title>
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.Nautilus" exec="&apos;org.gnome.Nautilus %u&apos;" modified="2026-05-03T00:51:04.691613Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="smb://192.168.177.4/nils/" added="2026-05-03T00:56:07.071739Z" modified="2026-05-03T00:56:07.071741Z" visited="2026-05-03T00:56:07.071740Z">
+    <title>nils on 192.168.177.4</title>
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.Nautilus" exec="&apos;org.gnome.Nautilus %u&apos;" modified="2026-05-03T00:56:07.071740Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="davs://home.wrenger.net:8081/nils" added="2026-05-03T01:28:57.868438Z" modified="2026-05-03T01:28:57.868447Z" visited="2026-05-03T01:28:57.868440Z">
+    <title>nils</title>
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.Nautilus" exec="&apos;org.gnome.Nautilus %u&apos;" modified="2026-05-03T01:28:57.868442Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+</xbel>

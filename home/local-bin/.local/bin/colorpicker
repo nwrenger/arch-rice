@@ -1,0 +1,7 @@
+#!/usr/bin/env fish
+# Colorpicker which copies the result to the clipboard
+
+set output (hyprpicker 2>/dev/null)
+if test -n "$output"
+    wl-copy $output
+end

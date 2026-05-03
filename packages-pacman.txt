@@ -28,9 +28,12 @@ gnome-themes-extra
 grim
 gst-plugin-pipewire
 gum
+gvfs-dnssd
+gvfs-smb
 htop
 hyprland
 hyprpaper
+hyprpicker
 hyprpolkitagent
 hyprutils
 imagemagick
@@ -70,6 +73,7 @@ qt6-5compat
 qt6ct
 qt6-wayland
 resvg
+rustup
 sassc
 satty
 sddm
