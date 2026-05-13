@@ -8,7 +8,6 @@ elephant-websearch-bin
 enpass-bin
 grimblast-git
 heroic-games-launcher-bin
-hyprshutdown
 iriunwebcam-bin
 limine-entry-tool
 limine-snapper-sync

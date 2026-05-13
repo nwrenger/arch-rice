@@ -35,6 +35,7 @@ hyprland
 hyprpaper
 hyprpicker
 hyprpolkitagent
+hyprshutdown
 hyprutils
 imagemagick
 impala
