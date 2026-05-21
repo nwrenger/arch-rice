@@ -10,6 +10,7 @@ bluez-utils
 brightnessctl
 btop
 btrfs-progs
+cross
 cups
 cups-pk-helper
 ddcutil ddcci

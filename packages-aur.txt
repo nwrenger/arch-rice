@@ -15,6 +15,7 @@ localsend-bin
 opentabletdriver
 osu-lazer-bin
 osu-mime
+protonup-qt-bin
 stoat-desktop-bin
 ttf-ia-writer
 uxplay
