@@ -11,8 +11,8 @@
     "mcp-server-context7": {
       "enabled": true,
       "remote": false,
-      "settings": {}
-    }
+      "settings": {},
+    },
   },
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
@@ -30,6 +30,7 @@
     },
   },
   "edit_predictions": {
+    "disabled_globs": [".env", "config.toml"],
     "provider": "copilot",
   },
   "lsp": {

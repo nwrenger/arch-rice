@@ -1,14 +1,15 @@
 [Unit]
-Description=SwayOSD on-screen display server
+Description=An Answer to your Wayland Wallpaper Woes
+Documentation=man:awww-daemon(1)
 PartOf=graphical-session.target
 After=graphical-session.target
 Requisite=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/swayosd-server
+Type=simple
+ExecStart=/usr/bin/awww-daemon
 Restart=on-failure
 RestartSec=2
-Environment=XDG_CONFIG_HOME=%h/.config
 
 [Install]
 WantedBy=graphical-session.target

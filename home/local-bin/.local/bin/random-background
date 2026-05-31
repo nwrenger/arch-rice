@@ -1,0 +1,47 @@
+#!/usr/bin/env fish
+
+set WALLPAPER_DIR ~/Pictures/wallpaper/
+
+if not test -d "$WALLPAPER_DIR"
+    printf "Wallpaper directory does not exist: \e[4m%s\e[0m\n" "$WALLPAPER_DIR"
+    exit 1
+end
+
+# Get the image paths currently displayed by awww, e.g.
+# ": DP-2: ..., currently displaying: image: /path/to/wallpaper.png"
+set current_imgs (
+    awww query \
+    | string match -r '.*currently displaying: image: (.*)' \
+    | string replace -r '.*currently displaying: image: ' '' \
+    | sort -u
+)
+
+set candidates (
+    find "$WALLPAPER_DIR" -type f \
+    | while read -l file
+        if not contains -- "$file" $current_imgs
+            echo "$file"
+        end
+    end
+)
+
+if test (count $candidates) -eq 0
+    printf "No other wallpapers found in: \e[4m%s\e[0m\n" "$WALLPAPER_DIR"
+    exit 1
+end
+
+set img $candidates[(random 1 (count $candidates))]
+
+# Random transition origin.
+# Adjust these if your monitor setup changes.
+set x (random 0 2559)
+set y (random 0 1439)
+
+awww img \
+    --resize crop \
+    --transition-type grow \
+    --transition-pos "$x,$y" \
+    --transition-duration 0.7 \
+    --transition-fps 144 \
+    --transition-step 90 \
+    "$img"

@@ -20,5 +20,6 @@ stoat-desktop-bin
 ttf-ia-writer
 uxplay
 walker-bin
+waybar-git
 xclicker
 zen-browser-bin

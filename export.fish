@@ -157,7 +157,7 @@ sys_cp /usr/share/sddm/scripts/Xsetup  sddm-scripts/Xsetup
 
 # ── wallpaper ────────────────────────────────────────────────────────────────
 step "Exporting wallpaper"
-home_cp wallpaper Pictures/wallpaper/1-totoro.png
+home_cp wallpaper Pictures/wallpaper/
 
 # ── packages list ────────────────────────────────────────────────────────────
 step "Exporting package lists"
