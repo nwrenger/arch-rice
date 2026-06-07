@@ -82,6 +82,7 @@ rustup
 sassc
 satty
 sddm
+shotcut
 slurp
 smartmontools
 snapper

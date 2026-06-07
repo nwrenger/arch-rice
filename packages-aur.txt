@@ -1,3 +1,4 @@
+blockbench-bin
 catppuccin-cursors-mocha
 ddcci-driver-linux-dkms-git ddcci
 elephant-bin
@@ -19,6 +20,7 @@ protonup-qt-bin
 stoat-desktop-bin
 ttf-ia-writer
 uxplay
+visual-studio-code-bin
 walker-bin
 waybar-git
 xclicker
