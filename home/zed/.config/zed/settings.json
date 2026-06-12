@@ -22,11 +22,13 @@
   "use_system_prompts": false,
   "use_system_path_prompts": false,
   "agent_servers": {
-    "codex-acp": {
-      "type": "registry",
-    },
-    "claude-acp": {
-      "type": "registry",
+    "opencode": {
+      "default_config_options": {
+        "effort": "medium",
+        "model": "opencode/deepseek-v4-flash-free",
+        "mode": "plan"
+      },
+      "type": "registry"
     },
   },
   "edit_predictions": {
