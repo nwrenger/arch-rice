@@ -70,7 +70,7 @@ set_color cyan
 echo "󰚰 Running full system update..."
 set_color normal
 echo ""
-paru -Syu --noconfirm
+paru -Syu
 set UPDATE_STATUS $status
 echo ""
 
