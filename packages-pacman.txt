@@ -97,6 +97,7 @@ system-config-printer
 ttf-firacode-nerd
 uwsm
 vim
+waybar
 wev
 wget
 wireless_tools

@@ -22,6 +22,5 @@ ttf-ia-writer
 uxplay
 visual-studio-code-bin
 walker-bin
-waybar-git
 xclicker
 zen-browser-bin
