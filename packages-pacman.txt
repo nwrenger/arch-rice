@@ -67,6 +67,7 @@ nvidia-open-dkms nvidia
 nwg-look
 obs-studio
 openssh
+papers
 pipewire
 pipewire-alsa
 pipewire-jack
@@ -83,6 +84,7 @@ sassc
 satty
 sddm
 shotcut
+simple-scan
 slurp
 smartmontools
 snapper
@@ -94,6 +96,7 @@ steam
 sudo
 swayosd
 system-config-printer
+tesseract-data-eng
 ttf-firacode-nerd
 uwsm
 vim

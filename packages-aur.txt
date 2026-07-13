@@ -13,10 +13,12 @@ iriunwebcam-bin
 limine-entry-tool
 limine-snapper-sync
 localsend-bin
+ocrmypdf
 opentabletdriver
 osu-lazer-bin
 osu-mime
 protonup-qt-bin
+python-fpdf2
 stoat-desktop-bin
 ttf-ia-writer
 uxplay
