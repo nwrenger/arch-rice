@@ -13,6 +13,7 @@ local apps = {
     editor = "MESA_VK_WSI_PRESENT_MODE=mailbox zeditor",
     browser = "zen-browser",
     messenger = "discord",
+    passwordManager = "enpass",
 
     audio = "wiremix",
     internet = "impala",

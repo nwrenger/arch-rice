@@ -19,6 +19,7 @@ osu-lazer-bin
 osu-mime
 protonup-qt-bin
 python-fpdf2
+python-pkg_resources
 stoat-desktop-bin
 ttf-ia-writer
 uxplay

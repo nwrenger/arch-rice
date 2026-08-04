@@ -13,6 +13,7 @@ hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(apps.fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(apps.browser))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(apps.editor))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(apps.messenger))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd(apps.passwordManager))
 
 -- System ctl
 hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.audio .. " -e " .. apps.audio))
