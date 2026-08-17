@@ -55,22 +55,19 @@ BarPopup {
     }
 
     function headerTitle() {
-        if (status.lanConnected && stationState === "connected")
-            return "LAN + " + (currentSsid || "Wi-Fi");
         if (status.lanConnected)
-            return "Wired network";
-        return currentSsid || "Network";
+            return "Network - Wired Connection";
+        if (stationState === "connected")
+            return "Network - " + (currentSsid || "Wi-Fi");
+        return "Network";
     }
 
     function headerSubtitle() {
-        var parts = [];
-        if (status.lanConnected)
-            parts.push(status.lanInterface + (status.lanAddress ? " · " + status.lanAddress : ""));
-        if (interfaceName)
-            parts.push("Wi-Fi " + stationState + " · " + interfaceName);
-        if (parts.length === 0)
-            return "Looking for a network adapter…";
-        return parts.join("  |  ");
+        if (status.lanConnected || stationState === "connected")
+            return "Connected";
+        if (status.lanAvailable || interfaceName)
+            return "Disconnected";
+        return "Unavailable";
     }
 
     function lanDetail() {

@@ -51,13 +51,26 @@ Item {
         if (!node || !node.audio)
             return;
 
+        var nextVolume = Util.clamp(value, 0, 1);
+        if (nextVolume <= 0) {
+            // A slider-muted node should come back at full volume. The UI
+            // represents muted nodes as 0%, independently of this stored value.
+            node.audio.muted = true;
+            node.audio.volume = 1;
+            return;
+        }
+
+        node.audio.volume = nextVolume;
         node.audio.muted = false;
-        node.audio.volume = Util.clamp(value, 0, 1);
     }
 
     function toggleNode(node) {
-        if (node && node.audio)
-            node.audio.muted = !node.audio.muted;
+        if (!node || !node.audio)
+            return;
+
+        if (node.audio.muted && node.audio.volume <= 0)
+            node.audio.volume = 1;
+        node.audio.muted = !node.audio.muted;
     }
 
     function showOutput() {
@@ -87,7 +100,7 @@ Item {
         if (!sink || !sink.audio)
             return;
 
-        sink.audio.muted = !sink.audio.muted;
+        toggleNode(sink);
         showOutput();
     }
 
@@ -103,7 +116,7 @@ Item {
         if (!source || !source.audio)
             return;
 
-        source.audio.muted = !source.audio.muted;
+        toggleNode(source);
         showInput();
     }
 

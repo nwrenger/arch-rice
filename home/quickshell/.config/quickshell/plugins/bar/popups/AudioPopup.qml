@@ -139,8 +139,8 @@ BarPopup {
         PopupSlider {
             width: parent.width
             icon: root.audio.outputMuted ? "󰝟" : "󰕾"
-            label: root.audio.outputMuted ? "Output muted" : "Output"
-            value: root.audio.outputVolume
+            label: "Output"
+            value: root.audio.outputMuted ? 0 : root.audio.outputVolume
             accent: Theme.red
             onMoved: function (value) {
                 root.audio.setNodeVolume(root.audio.sink, value);
@@ -152,8 +152,8 @@ BarPopup {
             width: parent.width
             visible: !!root.audio.source
             icon: root.audio.inputMuted ? "󰍭" : "󰍬"
-            label: root.audio.inputMuted ? "Microphone muted" : "Microphone"
-            value: root.audio.inputVolume
+            label: "Microphone"
+            value: root.audio.inputMuted ? 0 : root.audio.inputVolume
             accent: Theme.yellow
             onMoved: function (value) {
                 root.audio.setNodeVolume(root.audio.source, value);
@@ -230,13 +230,18 @@ BarPopup {
                         width: audioLists.width - 6
                         icon: modelData.audio && modelData.audio.muted ? "󰝟" : "󰎈"
                         label: root.audio.labelFor(modelData)
-                        value: modelData.audio ? modelData.audio.volume : 0
+                        value: modelData.audio && !modelData.audio.muted ? modelData.audio.volume : 0
                         accent: Theme.mauve
                         onMoved: function (value) {
                             root.audio.setNodeVolume(modelData, value);
                         }
                         onIconClicked: root.audio.toggleNode(modelData)
                     }
+                }
+
+                Item {
+                    width: 1
+                    height: root.audio.streams.length > 0 ? 3 : 0
                 }
             }
         }
