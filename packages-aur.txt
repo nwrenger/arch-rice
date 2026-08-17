@@ -1,11 +1,5 @@
 blockbench-bin
 catppuccin-cursors-mocha
-ddcci-driver-linux-dkms-git ddcci
-elephant-bin
-elephant-calc-bin
-elephant-desktopapplications-bin
-elephant-providerlist-bin
-elephant-websearch-bin
 enpass-bin
 grimblast-git
 heroic-games-launcher-bin
@@ -24,6 +18,5 @@ stoat-desktop-bin
 ttf-ia-writer
 uxplay
 visual-studio-code-bin
-walker-bin
 xclicker
 zen-browser-bin

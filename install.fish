@@ -59,7 +59,6 @@ set HAS_AMD_GPU 0
 set HAS_INTEL_GPU 0
 set HAS_INTEL_CPU 0
 set HAS_AMD_CPU 0
-set HAS_DDCCI 0
 
 if string match -q "*nvidia*" $GPU_VENDOR
     set HAS_NVIDIA 1
@@ -103,11 +102,6 @@ if not string match -qi "y" $hardware_ans
     err "Installation cancelled. Edit install.fish or check hardware detection before retrying."
 end
 
-read -l -P (set_color green)"  Install DDC/CI monitor support for external monitor brightness control?"(set_color brblack)" [y/N] "(set_color normal) ddcci_ans
-if string match -qi "y" $ddcci_ans
-    set HAS_DDCCI 1
-end
-
 # ── install paru ─────────────────────────────────────────────────────────────
 step "Setting up paru (AUR helper)"
 if command -q paru
@@ -142,7 +136,6 @@ set skip_tags
 if test $HAS_NVIDIA = 0;    set skip_tags $skip_tags nvidia;    end
 if test $HAS_INTEL_CPU = 0; set skip_tags $skip_tags intel-cpu; end
 if test $HAS_AMD_CPU = 0;   set skip_tags $skip_tags amd-cpu;   end
-if test $HAS_DDCCI = 0;     set skip_tags $skip_tags ddcci;     end
 
 function parse_pkgs
     # usage: parse_pkgs <file> <skip_tags...>
@@ -215,13 +208,6 @@ sudo locale-gen
 sudo mkdir -p /etc/sddm.conf.d
 sudo cp -rT $DOTFILES_DIR/system/etc/sddm.conf.d/ /etc/sddm.conf.d/
 
-# udev rules
-if test $HAS_DDCCI = 1
-    sudo cp $DOTFILES_DIR/system/etc/udev/rules.d/99-ddcci.rules /etc/udev/rules.d/
-    sudo udevadm control --reload-rules
-    ok "ddcci udev rule installed"
-end
-
 # snapper config
 sudo cp $DOTFILES_DIR/system/etc/snapper/configs/root /etc/snapper/configs/root
 or warn "snapper config copy failed — run manually"
@@ -258,13 +244,11 @@ set system_services \
     avahi-daemon.service \
     bluetooth.service \
     cups.service \
-    ddcci-hotplugd.service \
     iwd.service \
     limine-snapper-sync.service \
     mullvad-daemon.service \
     mullvad-early-boot-blocking.service \
     sddm.service \
-    swayosd-libinput-backend.service \
     snapper-cleanup.timer \
     snapper-timeline.timer
 
@@ -281,17 +265,11 @@ for svc in $system_services
     or warn "  failed to enable $svc"
 end
 
-# ── enable user services ─────────────────────────────────────────────────────
-step "Enabling user services"
+# ── enable user service ─────────────────────────────────────────────────────
+step "Enabling user service"
 
 set user_services \
-    elephant.service \
-    hyprpaper.service \
-    hyprpolkitagent.service \
-    mako.service \
-    swayosd.service \
-    walker.service \
-    waybar.service
+    shell.service
 
 for svc in $user_services
     systemctl --user enable --now $svc

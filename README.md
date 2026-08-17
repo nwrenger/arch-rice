@@ -1,6 +1,8 @@
 # arch-rice
 
-Arch Linux + Hyprland setup. Catppuccin Mocha / Mauve.
+Arch Linux + Hyprland setup with a single Quickshell desktop. Catppuccin Mocha / Mauve.
+
+Quickshell owns the wallpaper, bar, launcher, system menus, notifications, OSD, Polkit agent, and shutdown/logout transitions. PipeWire, NetworkManager, BlueZ, Mullvad, systemd, Pacman, Snapper, and Limine remain the underlying system services.
 
 ## Fresh install
 
@@ -58,18 +60,14 @@ arch-rice/
 │
 ├── home/                 ← copied directly into $HOME
 │   ├── hypr/             → .config/hypr/
-│   ├── waybar/           → .config/waybar/
+│   ├── quickshell/       → .config/quickshell/
 │   ├── alacritty/        → .config/alacritty/
-│   ├── elephant/         → .config/elephant/
 │   ├── fish/             → .config/fish/
 │   ├── starship/         → .config/starship.toml
-│   ├── walker/           → .config/walker/
 │   ├── kvantum/          → .config/Kvantum/
 │   ├── qt/               → .config/qt5ct/ + .config/qt6ct/
 │   ├── gtk/              → .config/gtk-3.0/ + .config/gtk-4.0/
 │   ├── fontconfig/       → .config/fontconfig/
-│   ├── mako/             → .config/mako/
-│   ├── swayosd/          → .config/swayosd/
 │   ├── fastfetch/        → .config/fastfetch/
 │   ├── btop/             → .config/btop/
 │   ├── zed/              → .config/zed/
@@ -85,8 +83,7 @@ arch-rice/
     │   ├── pacman.conf
     │   ├── snapper/configs/root
     │   ├── limine-snapper-sync.conf
-    │   ├── sddm.conf.d/theme.conf
-    │   └── udev/rules.d/99-ddcci.rules
+    │   └── sddm.conf.d/theme.conf
     ├── boot/
     │   └── limine.conf.template  ← options only, no entries, no PARTUUID
     ├── sddm-scripts/
@@ -95,14 +92,26 @@ arch-rice/
         └── where_is_my_sddm_theme/
 ```
 
+## Quickshell controls
+
+| Binding           | Action                            |
+| ----------------- | --------------------------------- |
+| `Super+Space`     | Application launcher              |
+| `Super+Alt+Space` | System menu                       |
+| `Super+Escape`    | Power menu                        |
+| `Super+Shift+V`   | Mullvad menu                      |
+| `Super+Shift+W`   | Random wallpaper                  |
+| Media keys        | Native Quickshell control and OSD |
+
+The desktop is managed by `shell.service`. Use `shell` for IPC, for example `shell launcher apps`, `shell wallpaper random`, or `shell session reboot`.
+
 ## Hardware tags
 
-| Tag         | Skipped when                |
-| ----------- | --------------------------- |
-| `nvidia`    | No NVIDIA GPU detected      |
-| `intel-cpu` | Not Intel CPU               |
-| `amd-cpu`   | Not AMD CPU                 |
-| `ddcci`     | User declines DDC/CI prompt |
+| Tag         | Skipped when           |
+| ----------- | ---------------------- |
+| `nvidia`    | No NVIDIA GPU detected |
+| `intel-cpu` | Not Intel CPU          |
+| `amd-cpu`   | Not AMD CPU            |
 
 ## What's intentionally NOT exported
 

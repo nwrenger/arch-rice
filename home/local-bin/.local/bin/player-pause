@@ -1,3 +1,0 @@
-#!/usr/bin/env fish
-
-swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')" --playerctl play-pause

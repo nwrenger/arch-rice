@@ -1,0 +1,4 @@
+#!/usr/bin/env fish
+
+set config_dir "$HOME/.config/quickshell"
+exec quickshell ipc -p "$config_dir" call shell $argv

@@ -41,8 +41,8 @@ end
 # hypr
 home_cp hypr .config/hypr
 
-# waybar
-home_cp waybar .config/waybar
+# Quickshell desktop
+home_cp quickshell .config/quickshell
 
 # alacritty
 home_cp alacritty .config/alacritty
@@ -52,12 +52,6 @@ home_cp fish .config/fish
 
 # starship
 home_cp starship .config/starship.toml
-
-# walker
-home_cp walker .config/walker
-
-# elephant
-home_cp elephant .config/elephant
 
 # kvantum
 home_cp kvantum .config/Kvantum
@@ -72,12 +66,6 @@ home_cp gtk .config/gtk-4.0
 
 # fontconfig
 home_cp fontconfig .config/fontconfig
-
-# swayosd
-home_cp swayosd .config/swayosd
-
-# mako
-home_cp mako .config/mako
 
 # fastfetch
 home_cp fastfetch .config/fastfetch
@@ -117,7 +105,6 @@ end
 
 sys_cp /etc/locale.conf           etc/locale.conf
 sys_cp /etc/pacman.conf           etc/pacman.conf
-sys_cp /etc/udev/rules.d/99-ddcci.rules  etc/udev/rules.d/99-ddcci.rules
 sys_cp /etc/default/limine     etc/default/limine
 sys_cp /etc/sddm.conf.d           etc/sddm.conf.d
 

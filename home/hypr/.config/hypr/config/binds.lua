@@ -16,16 +16,14 @@ hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(apps.messenger))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd(apps.passwordManager))
 
 -- System ctl
-hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.audio .. " -e " .. apps.audio))
-hl.bind(mainMod .. " + SHIFT + E",
-    hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.internet .. " -e " .. apps.internet))
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.audio))
+hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(apps.internet))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(apps.vpn))
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(apps.airplay))
-hl.bind(mainMod .. " + SHIFT + B",
-    hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.bluetooth .. " -e " .. apps.bluetooth))
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd(apps.bluetooth))
 hl.bind(mainMod .. " + SHIFT + S",
     hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.systemMonitor .. " -e " .. apps.systemMonitor))
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("random-background"))
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("shell wallpaper random"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("colorpicker"))
 hl.bind("Print", hl.dsp.exec_cmd("take-screenshot"))
 
@@ -71,16 +69,14 @@ hl.bind("SUPER + Tab", function()
     hl.dispatch(hl.dsp.window.bring_to_top())
 end)
 
--- Keyboard multimedia keys for volume and Monitor brightness
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("raise-speaker"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("lower-speaker"), { locked = true, repeating = true })
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("mute-speaker"), { locked = true, repeating = true })
-hl.bind("XF86Tools", hl.dsp.exec_cmd("mute-mic"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("raise-brightness"), { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("lower-brightness"), { locked = true, repeating = true })
+-- Keyboard multimedia keys for volume and microphone
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("shell volume up"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("shell volume down"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("shell volume mute"), { locked = true, repeating = true })
+hl.bind("XF86Tools", hl.dsp.exec_cmd("shell mic mute"), { locked = true, repeating = true })
 
--- playerctl
-hl.bind("XF86AudioNext", hl.dsp.exec_cmd("player-next"), { locked = true })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("player-pause"), { locked = true })
-hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("player-pause"), { locked = true })
-hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("player-previous"), { locked = true })
+-- Media controls
+hl.bind("XF86AudioNext", hl.dsp.exec_cmd("shell media next"), { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("shell media toggle"), { locked = true })
+hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("shell media toggle"), { locked = true })
+hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("shell media previous"), { locked = true })

@@ -45,11 +45,11 @@ hl.window_rule({
 })
 
 -- Floating windows
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.audio, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.internet, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.bluetooth, }, tag = "+float", })
+hl.window_rule({ match = { class = apps.terminalClass, title = apps.packageInstall, }, tag = "+float", })
+hl.window_rule({ match = { class = apps.terminalClass, title = apps.aurInstall, }, tag = "+float", })
+hl.window_rule({ match = { class = apps.terminalClass, title = apps.packageRemove, }, tag = "+float", })
+hl.window_rule({ match = { class = apps.terminalClass, title = apps.systemUpdate, }, tag = "+float", })
 hl.window_rule({ match = { class = apps.terminalClass, title = apps.systemMonitor, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = "walker menu", }, tag = "+float", })
 hl.window_rule({ match = { class = "com.gabm.satty", }, tag = "+float", })
 
 hl.window_rule({
@@ -68,22 +68,6 @@ hl.window_rule({
     },
     float = true,
     size = "575 222",
-})
-
--- walker
-hl.window_rule({
-    match = {
-        class = apps.applauncherClass,
-    },
-    stay_focused = true,
-})
-
--- hyprpolkitagent
-hl.window_rule({
-    match = {
-        class = "Hyprland Polkit Agent",
-    },
-    center = true,
 })
 
 -- Iriun Webcam

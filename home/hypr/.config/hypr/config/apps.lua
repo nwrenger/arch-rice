@@ -4,23 +4,26 @@ local apps = {
 
     fileManager = "nautilus",
 
-    applauncher = "walker --width 450 --height 520 || walker --close",
-    applauncherClass = "dev.benz.walker",
+    applauncher = "shell launcher apps",
 
-    menu = "menu || walker --close",
-    powerMenu = "menu-power nomenu",
+    menu = "shell launcher root",
+    powerMenu = "shell launcher power",
 
     editor = "MESA_VK_WSI_PRESENT_MODE=mailbox zeditor",
     browser = "zen-browser",
     messenger = "discord",
     passwordManager = "enpass",
 
-    audio = "wiremix",
-    internet = "impala",
-    vpn = "menu-vpn nomenu",
-    airplay = "control-uxplay toggle",
-    bluetooth = "bluetui",
+    audio = "shell popup audio",
+    internet = "shell popup network",
+    vpn = "shell popup vpn",
+    airplay = "shell uxplay toggle",
+    bluetooth = "shell popup bluetooth",
     systemMonitor = "btop",
+    packageInstall = "package install",
+    aurInstall = "AUR install",
+    packageRemove = "package removal",
+    systemUpdate = "system update",
 }
 
 return apps
