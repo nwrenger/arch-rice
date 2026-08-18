@@ -8,6 +8,7 @@ Requisite=graphical-session.target
 Environment=QT_QPA_PLATFORM=wayland
 Environment=QT_QPA_PLATFORMTHEME=qt6ct
 Environment=QT_STYLE_OVERRIDE=kvantum
+Environment=XDG_DATA_DIRS=/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
 ExecStart=/usr/bin/quickshell -n -p %h/.config/quickshell
 Restart=on-failure
 RestartSec=2

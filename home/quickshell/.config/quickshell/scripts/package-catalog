@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mode="${1:-}"
+cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell/package-catalog"
+
+refresh_cache() {
+    local url="$1"
+    local destination="$2"
+    local max_age_minutes="$3"
+    local stale=""
+
+    if [[ -s "$destination" ]]; then
+        stale="$(find "$destination" -mmin "+$max_age_minutes" -print -quit)"
+    fi
+    if [[ -s "$destination" && -z "$stale" ]]; then
+        return
+    fi
+
+    mkdir -p "$cache_root"
+    local temporary
+    temporary="$(mktemp "$cache_root/.download.XXXXXX")"
+    local curl_options=(-fsSL --retry 2 --output "$temporary")
+    if [[ -s "$destination" ]]; then
+        curl_options+=(-z "$destination")
+    fi
+
+    if curl "${curl_options[@]}" "$url"; then
+        if [[ -s "$temporary" ]]; then
+            if gzip -t "$temporary"; then
+                mv -f "$temporary" "$destination"
+            else
+                rm -f "$temporary"
+                [[ -s "$destination" ]] || return 1
+            fi
+        else
+            rm -f "$temporary"
+            touch "$destination"
+        fi
+    else
+        rm -f "$temporary"
+        [[ -s "$destination" ]] || return 1
+    fi
+}
+
+list_official() {
+    LC_ALL=C pacman --color never -Ss | awk '
+        function emit() {
+            if (name != "")
+                printf "%s\t%s\t%s\n", name, name, description
+        }
+        /^[^[:space:]]/ {
+            emit()
+            split($1, fields, "/")
+            name = fields[2]
+            description = ""
+            next
+        }
+        {
+            sub(/^[[:space:]]+/, "")
+            description = description == "" ? $0 : description " " $0
+        }
+        END { emit() }
+    '
+}
+
+list_installed_system() {
+    LC_ALL=C pacman -Qi | awk '
+        function value(line) {
+            sub(/^[^:]*:[[:space:]]*/, "", line)
+            return line
+        }
+        function emit() {
+            if (name != "" && explicit)
+                printf "%s\t%s\t%s\n", name, name, description
+        }
+        /^Name[[:space:]]*:/ { name = value($0); next }
+        /^Description[[:space:]]*:/ { description = value($0); next }
+        /^Install Reason[[:space:]]*:/ {
+            explicit = value($0) == "Explicitly installed"
+            next
+        }
+        /^$/ {
+            emit()
+            name = ""
+            description = ""
+            explicit = 0
+        }
+        END { emit() }
+    '
+}
+
+list_aur() {
+    local archive="$cache_root/aur-packages.json.gz"
+    refresh_cache "https://aur.archlinux.org/packages-meta-v1.json.gz" "$archive" 360
+    gzip -dc "$archive" | jq -r '.[] | [.Name, .Name, (.Description // "")] | @tsv'
+}
+
+list_flatpak() {
+    local catalog="$cache_root/flathub-appstream.xml.gz"
+    refresh_cache "https://dl.flathub.org/repo/appstream/x86_64/appstream.xml.gz" "$catalog" 1440
+    gzip -dc "$catalog" | python3 -c '
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+
+remove_mode = len(sys.argv) > 1 and sys.argv[1] == "remove"
+installed = {}
+if remove_mode:
+    output = subprocess.check_output(
+        ["flatpak", "list", "--app", "--columns=application,name,installation"],
+        text=True,
+    )
+    for line in output.splitlines():
+        fields = line.split("\t")
+        app_id = fields[0].strip() if fields else ""
+        if app_id:
+            installed[app_id] = (
+                fields[1].strip() if len(fields) > 1 else app_id,
+                fields[2].strip() if len(fields) > 2 else "",
+            )
+
+language_attribute = "{http://www.w3.org/XML/1998/namespace}lang"
+seen = set()
+
+def untranslated_text(component, tag):
+    for child in component.findall(tag):
+        if language_attribute not in child.attrib:
+            return " ".join("".join(child.itertext()).split())
+    return ""
+
+for _, component in ET.iterparse(sys.stdin.buffer, events=("end",)):
+    if component.tag != "component":
+        continue
+    app_id = untranslated_text(component, "id")
+    if not app_id or (remove_mode and app_id not in installed):
+        component.clear()
+        continue
+    name = untranslated_text(component, "name")
+    summary = untranslated_text(component, "summary")
+    if remove_mode:
+        installed_name, installation = installed[app_id]
+        name = name or installed_name
+        search_text = f"{app_id} {installation}".strip()
+    else:
+        search_text = f"{app_id} flathub"
+    print("\t".join((app_id, name or app_id, summary, search_text)))
+    seen.add(app_id)
+    component.clear()
+
+if remove_mode:
+    for app_id, (name, installation) in installed.items():
+        if app_id not in seen:
+            print("\t".join((app_id, name or app_id, "", f"{app_id} {installation}".strip())))
+' "${1:-install}"
+}
+
+case "$mode" in
+    official)
+        list_official
+        ;;
+    aur)
+        list_aur
+        ;;
+    system-remove)
+        list_installed_system
+        ;;
+    flatpak)
+        list_flatpak install
+        ;;
+    flatpak-remove)
+        list_flatpak remove
+        ;;
+    *)
+        printf 'Unknown package catalog mode: %s\n' "$mode" >&2
+        exit 2
+        ;;
+esac

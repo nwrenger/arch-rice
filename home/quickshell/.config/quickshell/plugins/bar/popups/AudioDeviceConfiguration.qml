@@ -169,7 +169,7 @@ Item {
         }
     }
 
-    implicitHeight: configuration.implicitHeight + 8
+    implicitHeight: configuration.implicitHeight
 
     Component.onCompleted: loadConfiguration()
     onDeviceIdChanged: {
@@ -258,23 +258,11 @@ Item {
         }
     }
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 4
-        anchors.bottomMargin: 4
-        width: 2
-        radius: 1
-        color: root.output ? Theme.red : Theme.yellow
-        opacity: 0.65
-    }
-
-    Column {
+    InlineSettings {
         id: configuration
 
-        x: 14
-        width: parent.width - x
+        width: parent.width
+        accent: root.output ? Theme.red : Theme.yellow
         spacing: 4
 
         PopupSection {
@@ -310,7 +298,7 @@ Item {
             ActionRow {
                 required property var modelData
 
-                width: configuration.width
+                width: configuration.contentWidth
                 icon: Number(modelData.index) === root.activeProfile ? "󰄬" : "󰝦"
                 label: modelData.description || "Profile " + modelData.index
                 selected: Number(modelData.index) === root.activeProfile
@@ -335,7 +323,7 @@ Item {
             ActionRow {
                 required property var modelData
 
-                width: configuration.width
+                width: configuration.contentWidth
                 icon: root.activeRoutes.indexOf(Number(modelData.index)) >= 0 ? "󰄬" : "󰝦"
                 label: modelData.description || "Port " + modelData.index
                 selected: root.activeRoutes.indexOf(Number(modelData.index)) >= 0

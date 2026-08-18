@@ -68,21 +68,20 @@ ShellRoot {
 
         shell: shell
         audio: audio
-        media: mediaService
         status: status
     }
 
     IpcHandler {
-        function ping() : string {
+        function ping(): string {
             return "ok";
         }
 
-        function launcher(mode: string) : string {
+        function launcher(mode: string): string {
             launcherOverlay.toggle(mode);
             return "ok";
         }
 
-        function volume(action: string) : string {
+        function volume(action: string): string {
             if (action === "up")
                 audio.adjustOutput(0.05);
             else if (action === "down")
@@ -94,7 +93,7 @@ ShellRoot {
             return "ok";
         }
 
-        function mic(action: string) : string {
+        function mic(action: string): string {
             if (action === "mute")
                 audio.toggleInput();
             else if (action === "up")
@@ -106,7 +105,7 @@ ShellRoot {
             return "ok";
         }
 
-        function media(action: string) : string {
+        function media(action: string): string {
             if (action === "next")
                 mediaService.next();
             else if (action === "previous")
@@ -118,7 +117,7 @@ ShellRoot {
             return "ok";
         }
 
-        function uxplay(action: string) : string {
+        function uxplay(action: string): string {
             if (action !== "toggle")
                 return "unknown";
 
@@ -126,7 +125,7 @@ ShellRoot {
             return "ok";
         }
 
-        function wallpaper(action: string) : string {
+        function wallpaper(action: string): string {
             if (action !== "random")
                 return "unknown";
 
@@ -134,12 +133,12 @@ ShellRoot {
             return "ok";
         }
 
-        function setWallpaper(path: string) : string {
+        function setWallpaper(path: string): string {
             background.setWallpaper(path, false);
             return "ok";
         }
 
-        function session(action: string) : string {
+        function session(action: string): string {
             if (["poweroff", "reboot", "logout", "suspend"].indexOf(action) < 0)
                 return "unknown";
 
@@ -147,12 +146,12 @@ ShellRoot {
             return "ok";
         }
 
-        function showOsd(icon: string, message: string) : string {
+        function showOsd(icon: string, message: string): string {
             osd.show(icon, message, -1);
             return "ok";
         }
 
-        function popup(name: string) : string {
+        function popup(name: string): string {
             if (["calendar", "audio", "network", "bluetooth", "media", "vpn"].indexOf(name) < 0)
                 return "unknown";
 
@@ -160,16 +159,15 @@ ShellRoot {
             return bar.activePopup + "@" + bar.activePopupScreen;
         }
 
-        function popupState() : string {
+        function popupState(): string {
             return bar.activePopup + "@" + bar.activePopupScreen;
         }
 
-        function popupClose() : string {
+        function popupClose(): string {
             bar.closePopup(bar.activePopup, bar.activePopupScreen);
             return "ok";
         }
 
         target: "shell"
     }
-
 }

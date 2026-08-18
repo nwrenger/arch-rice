@@ -19,7 +19,6 @@ Item {
     property var dataRows: []
     property var modeHistory: []
     property var selectedPackages: []
-    property bool removeDependencies: false
     property string targetScreenName: ""
     property string dataProcessMode: ""
     property string queuedDataMode: ""
@@ -32,7 +31,9 @@ Item {
             "remove-choice": "Remove package",
             "package-official": "Official",
             "package-aur": "AUR",
-            "package-remove": removeDependencies ? "Remove with dependencies" : "Remove package",
+            "package-flatpak": "Flatpak",
+            "package-remove": "Remove system package",
+            "package-flatpak-remove": "Remove Flatpak",
             "power": "Power"
         };
         var value = titles[mode] || "Launcher";
@@ -154,20 +155,25 @@ Item {
                     "icon": "󰣇",
                     "label": "AUR",
                     "target": "package-aur"
+                },
+                {
+                    "icon": "",
+                    "label": "Flatpak",
+                    "target": "package-flatpak"
                 }
             ];
 
         if (mode === "remove-choice")
             return [
                 {
-                    "icon": "󰆴",
-                    "label": "Only selected",
-                    "action": "remove-only"
+                    "icon": "󰣇",
+                    "label": "System",
+                    "action": "remove-system"
                 },
                 {
-                    "icon": "󰵩",
-                    "label": "With dependencies",
-                    "action": "remove-deps"
+                    "icon": "",
+                    "label": "Flatpak",
+                    "target": "package-flatpak-remove"
                 }
             ];
 
@@ -232,6 +238,10 @@ Item {
         for (var i = 0; i < dataRows.length; i++) {
             var row = dataRows[i];
             var rank = packageMatchRank(String(row.label || "").toLowerCase(), needle);
+            if (rank < 0 && String(row.detail || "").toLowerCase().indexOf(needle) >= 0)
+                rank = 4;
+            if (rank < 0 && String(row.searchText || "").toLowerCase().indexOf(needle) >= 0)
+                rank = 4;
             if (rank >= 0)
                 matches.push({
                     "row": row,
@@ -285,12 +295,17 @@ Item {
     }
 
     function packageCommand(modeName) {
+        var catalog = Quickshell.shellDir + "/scripts/package-catalog";
         if (modeName === "package-official")
-            return ["bash", "-lc", "pacman -Ssq | sort -u"];
+            return ["bash", catalog, "official"];
         if (modeName === "package-aur")
-            return ["bash", "-lc", "curl -fsSL https://aur.archlinux.org/packages.gz | gzip -dc"];
+            return ["bash", catalog, "aur"];
+        if (modeName === "package-flatpak")
+            return ["bash", catalog, "flatpak"];
         if (modeName === "package-remove")
-            return ["pacman", "-Qeq"];
+            return ["bash", catalog, "system-remove"];
+        if (modeName === "package-flatpak-remove")
+            return ["bash", catalog, "flatpak-remove"];
         return null;
     }
 
@@ -347,31 +362,30 @@ Item {
             launchTerminal("sudo pacman -S -- " + arguments, "package install");
         else if (mode === "package-aur")
             launchTerminal("paru -S -- " + arguments, "AUR install");
+        else if (mode === "package-flatpak")
+            launchTerminal("flatpak install --app " + arguments, "Flatpak install");
+        else if (mode === "package-flatpak-remove")
+            launchTerminal("flatpak uninstall --app " + arguments, "Flatpak removal");
         else
-            launchTerminal("sudo pacman " + (removeDependencies ? "-Rns" : "-R") + " -- " + arguments, "package removal");
+            launchTerminal("sudo pacman -Rns -- " + arguments, "package removal");
     }
 
     function launchApplication(desktopId) {
-        var id = String(desktopId || "").trim();
+        var id = desktopId.trim();
         if (!id)
             return;
 
-        if (id.slice(-8) === ".desktop")
-            id = id.slice(0, -8);
-
-        // Enpass aborts when it is launched through UWSM on this system. Run
-        // its desktop command in a detached graphical user service instead,
-        // while dropping the Qt theme overrides its bundled Qt cannot load.
-        if (id.toLowerCase() === "enpass") {
-            Quickshell.execDetached(["systemd-run", "--user", "--collect", "--quiet", "--slice=app-graphical.slice", "/usr/bin/env", "-u", "QT_QPA_PLATFORMTHEME", "-u", "QT_STYLE_OVERRIDE", "/opt/enpass/Enpass"]);
+        // Enpass won't launch over the normal way. Therefore, this launches
+        // the binary in its own graphical service.
+        if (id === "enpass") {
+            Quickshell.execDetached(["systemd-run", "--user", "--collect", "--quiet", "--slice=app-graphical.slice", "/opt/enpass/Enpass"]);
             close();
             return;
         }
+
         // gtk-launch resolves the desktop entry while
         // uwsm-app places the application in the graphical application slice.
-        // Keep the suffix because IDs such as org.telegram.desktop otherwise
-        // do not resolve reliably.
-        Quickshell.execDetached(["uwsm-app", "--", "gtk-launch", id + ".desktop"]);
+        Quickshell.execDetached(["uwsm-app", "--", "gtk-launch", id]);
         close();
     }
 
@@ -399,12 +413,7 @@ Item {
         case "update":
             launchTerminal("update", "system update");
             break;
-        case "remove-only":
-            removeDependencies = false;
-            setMode("package-remove");
-            break;
-        case "remove-deps":
-            removeDependencies = true;
+        case "remove-system":
             setMode("package-remove");
             break;
         case "poweroff":
@@ -439,15 +448,30 @@ Item {
             onStreamFinished: {
                 var lines = String(text || "").split("\n");
                 var rows = [];
+                var flatpakMode = root.dataProcessMode === "package-flatpak" || root.dataProcessMode === "package-flatpak-remove";
+                var seenPackages = {};
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
                     if (!line)
                         continue;
 
+                    var columns = line.split("\t");
+                    var packageName = String(columns[0] || "").trim();
+                    if (!packageName || seenPackages[packageName])
+                        continue;
+                    seenPackages[packageName] = true;
                     rows.push({
-                        "icon": root.dataProcessMode === "package-remove" ? "󰆴" : "󰏗",
-                        "label": line,
-                        "packageName": line
+                        "icon": flatpakMode ? "" : (root.dataProcessMode === "package-remove" ? "󰆴" : "󰏗"),
+                        "label": String(columns[1] || packageName).trim() || packageName,
+                        "detail": String(columns[2] || "").trim() || "No description available",
+                        "searchText": packageName + " " + String(columns[3] || ""),
+                        "packageName": packageName
+                    });
+                }
+                if (flatpakMode) {
+                    rows.sort(function (a, b) {
+                        var titleOrder = String(a.label).localeCompare(String(b.label));
+                        return titleOrder !== 0 ? titleOrder : String(a.packageName).localeCompare(String(b.packageName));
                     });
                 }
                 if (root.mode === root.dataProcessMode)
@@ -530,11 +554,23 @@ Item {
                             radius: Theme.radius
                             color: Theme.mantle
 
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 14
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 20
+                                text: ""
+                                color: input.activeFocus ? Theme.mauve : Theme.overlay0
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 17
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+
                             TextInput {
                                 id: input
 
                                 anchors.fill: parent
-                                anchors.leftMargin: 14
+                                anchors.leftMargin: 46
                                 anchors.rightMargin: 14
                                 verticalAlignment: TextInput.AlignVCenter
                                 text: root.query
@@ -543,6 +579,13 @@ Item {
                                 selectedTextColor: Theme.base
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 17
+                                cursorDelegate: Rectangle {
+                                    width: 2
+                                    radius: 1
+                                    color: Theme.mauve
+                                    opacity: 0.8
+                                    visible: input.activeFocus && input.selectionStart === input.selectionEnd
+                                }
                                 focus: panel.visible && panel.targetPanel
                                 onTextEdited: root.query = text
                                 onActiveFocusChanged: {
@@ -583,7 +626,7 @@ Item {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     visible: input.text === ""
-                                    text: "  " + root.title
+                                    text: root.title
                                     color: Theme.overlay0
                                     font: input.font
                                 }

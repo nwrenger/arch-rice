@@ -14,6 +14,17 @@ BarPopup {
     property string stationState: status.wifiState
     property string currentSsid: status.wifiSsid
     property var networks: []
+    property var knownNetworks: []
+    property int knownDetailsIndex: -1
+    property string knownDetailsName: ""
+    property string configuredKnownNetwork: ""
+    property string knownActionName: ""
+    property string knownActionKind: ""
+    property string knownActionError: ""
+    property string knownActionProcessError: ""
+    property string transitionNetworkName: ""
+    property string networkTransitionState: ""
+    property int transitionPollAttempts: 0
     property var pendingNetwork: null
     property bool passwordRequested: false
     property string errorMessage: ""
@@ -46,6 +57,42 @@ BarPopup {
             return "󰤢";
 
         return "󰤟";
+    }
+
+    function networkDetail(network, known, transition, settingsOpen) {
+        var parts = [known ? "Known" : (network.security === "open" ? "Open" : "Secured"), network.signal + "%"];
+        if (transition === "connecting")
+            parts.push("Connecting…");
+        else if (transition === "disconnecting")
+            parts.push("Disconnecting…");
+        else if (network.connected)
+            parts.push("Connected");
+        if (settingsOpen)
+            parts.push("Settings open");
+        return parts.join(" · ");
+    }
+
+    function beginNetworkTransition(network, state) {
+        transitionNetworkName = network.name;
+        networkTransitionState = state;
+        transitionPollAttempts = 0;
+    }
+
+    function clearNetworkTransition() {
+        transitionNetworkName = "";
+        networkTransitionState = "";
+        transitionPollAttempts = 0;
+    }
+
+    function updateNetworkTransition() {
+        if (networkTransitionState === "")
+            return;
+
+        var finished = networkTransitionState === "connecting"
+            ? stationState === "connected" && currentSsid === transitionNetworkName
+            : stationState === "disconnected" || stationState === "unavailable" || (stationState === "connected" && currentSsid !== transitionNetworkName);
+        if (finished)
+            clearNetworkTransition();
     }
 
     function headerIcon() {
@@ -110,6 +157,7 @@ BarPopup {
         }
         stationState = nextState;
         currentSsid = nextState === "connected" ? nextSsid : "";
+        updateNetworkTransition();
     }
 
     function parseNetworks(output) {
@@ -139,19 +187,159 @@ BarPopup {
                 "connected": connected || name === currentSsid
             });
         }
+        networks = result;
+        sortNetworks();
+    }
+
+    function sortNetworks() {
+        var result = networks.slice();
         result.sort(function (a, b) {
+            var aKnown = knownNetwork(a.name) !== null;
+            var bKnown = knownNetwork(b.name) !== null;
+            if (aKnown !== bKnown)
+                return aKnown ? -1 : 1;
             if (a.connected !== b.connected)
                 return a.connected ? -1 : 1;
 
             return b.signal - a.signal;
         });
         networks = result;
+
+        if (configuredKnownNetwork !== "") {
+            var stillAvailable = false;
+            for (var i = 0; i < result.length; i++) {
+                if (result[i].name === configuredKnownNetwork) {
+                    stillAvailable = true;
+                    break;
+                }
+            }
+            if (!stillAvailable)
+                closeKnownConfiguration();
+        }
+    }
+
+    function knownNetwork(name) {
+        for (var i = 0; i < knownNetworks.length; i++) {
+            if (knownNetworks[i].name === name)
+                return knownNetworks[i];
+        }
+        return null;
+    }
+
+    function parseKnownNetworks(output) {
+        var result = [];
+        var lines = stripAnsi(output).split("\n");
+        for (var i = 0; i < lines.length; i++) {
+            var match = lines[i].match(/^\s{2}(.+?)\s{2,}(open|psk|8021x|sae|owe)(?:\s|$)/i);
+            if (!match)
+                continue;
+
+            var name = match[1].trim();
+            var existing = knownNetwork(name);
+            result.push({
+                "name": name,
+                "security": match[2].toLowerCase(),
+                "autoConnect": existing ? existing.autoConnect : false,
+                "autoConnectKnown": existing ? existing.autoConnectKnown : false
+            });
+        }
+        result.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
+        knownNetworks = result;
+        if (configuredKnownNetwork !== "" && !knownNetwork(configuredKnownNetwork))
+            closeKnownConfiguration();
+        sortNetworks();
+        knownDetailsIndex = -1;
+        loadNextKnownNetworkDetails();
+    }
+
+    function updateKnownNetwork(name, autoConnect, autoConnectKnown) {
+        var result = [];
+        for (var i = 0; i < knownNetworks.length; i++) {
+            var network = knownNetworks[i];
+            result.push(network.name === name ? {
+                "name": network.name,
+                "security": network.security,
+                "autoConnect": autoConnect,
+                "autoConnectKnown": autoConnectKnown
+            } : network);
+        }
+        knownNetworks = result;
+    }
+
+    function removeKnownNetwork(name) {
+        var result = [];
+        for (var i = 0; i < knownNetworks.length; i++) {
+            if (knownNetworks[i].name !== name)
+                result.push(knownNetworks[i]);
+        }
+        knownNetworks = result;
+        sortNetworks();
+    }
+
+    function loadNextKnownNetworkDetails() {
+        if (knownDetailsProcess.running)
+            return;
+
+        knownDetailsIndex++;
+        if (knownDetailsIndex >= knownNetworks.length) {
+            knownDetailsName = "";
+            return;
+        }
+
+        knownDetailsName = knownNetworks[knownDetailsIndex].name;
+        knownDetailsProcess.command = ["iwctl", "--dont-ask", "known-networks", knownDetailsName, "show"];
+        knownDetailsProcess.running = true;
+    }
+
+    function refreshKnownNetworks() {
+        if (knownListProcess.running || knownDetailsProcess.running || knownActionProcess.running)
+            return;
+
+        knownListProcess.running = true;
+    }
+
+    function toggleKnownConfiguration(network) {
+        if (!network)
+            return;
+        knownActionError = "";
+        configuredKnownNetwork = configuredKnownNetwork === network.name ? "" : network.name;
+    }
+
+    function closeKnownConfiguration() {
+        configuredKnownNetwork = "";
+    }
+
+    function setKnownAutoConnect(network) {
+        if (!network || !network.autoConnectKnown || knownListProcess.running || knownDetailsProcess.running || knownActionProcess.running)
+            return;
+
+        knownActionName = network.name;
+        knownActionKind = "autoconnect";
+        knownActionError = "";
+        knownActionProcessError = "";
+        knownActionProcess.command = ["iwctl", "--dont-ask", "known-networks", network.name, "set-property", "AutoConnect", network.autoConnect ? "no" : "yes"];
+        knownActionProcess.running = true;
+    }
+
+    function forgetKnownNetwork(network) {
+        if (!network || knownListProcess.running || knownDetailsProcess.running || knownActionProcess.running)
+            return;
+
+        knownActionName = network.name;
+        knownActionKind = "forget";
+        knownActionError = "";
+        knownActionProcessError = "";
+        knownActionProcess.command = ["iwctl", "--dont-ask", "known-networks", network.name, "forget"];
+        knownActionProcess.running = true;
     }
 
     function refresh() {
         errorMessage = "";
         if (!interfaceProcess.running)
             interfaceProcess.running = true;
+        refreshKnownNetworks();
     }
 
     function scan() {
@@ -163,27 +351,32 @@ BarPopup {
     }
 
     function connectNetwork(network) {
-        if (!network || !interfaceName || connectProcess.running)
+        if (!network || !interfaceName || connectProcess.running || disconnectProcess.running || networkTransitionState !== "")
             return;
 
+        closeKnownConfiguration();
         passwordRequested = false;
         errorMessage = "";
         if (network.connected) {
             pendingNetwork = null;
-            Quickshell.execDetached(["iwctl", "station", interfaceName, "disconnect"]);
-            refreshTimer.restart();
+            beginNetworkTransition(network, "disconnecting");
+            disconnectProcess.command = ["iwctl", "--dont-ask", "station", interfaceName, "disconnect"];
+            disconnectProcess.running = true;
             return;
         }
         pendingNetwork = network;
+        beginNetworkTransition(network, "connecting");
         connectProcess.command = ["iwctl", "--dont-ask", "station", interfaceName, "connect", network.name];
         connectProcess.running = true;
     }
 
     function connectWithPassword() {
-        if (!pendingNetwork || !interfaceName || passwordInput.text === "" || connectProcess.running)
+        if (!pendingNetwork || !interfaceName || passwordInput.text === "" || connectProcess.running || disconnectProcess.running || networkTransitionState !== "")
             return;
 
+        errorMessage = "";
         connectProcess.command = ["iwctl", "--passphrase", passwordInput.text, "--dont-ask", "station", interfaceName, "connect", pendingNetwork.name];
+        beginNetworkTransition(pendingNetwork, "connecting");
         passwordInput.text = "";
         passwordRequested = false;
         connectProcess.running = true;
@@ -198,6 +391,22 @@ BarPopup {
 
     popupWidth: 410
     popupHeight: 530
+    customKeyHandler: function (event) {
+        if (event.key === Qt.Key_Escape && root.configuredKnownNetwork !== "") {
+            root.closeKnownConfiguration();
+            return true;
+        }
+
+        if (event.key !== Qt.Key_C)
+            return false;
+
+        var item = root.keyboardNavigationItem;
+        if (!item || typeof item.keyboardConfigure !== "function")
+            return false;
+
+        item.keyboardConfigure();
+        return true;
+    }
     onOpenedChanged: {
         if (opened) {
             refresh();
@@ -206,6 +415,9 @@ BarPopup {
             passwordInput.text = "";
             pendingNetwork = null;
             errorMessage = "";
+            knownActionError = "";
+            knownActionProcessError = "";
+            closeKnownConfiguration();
         }
     }
 
@@ -267,20 +479,22 @@ BarPopup {
         id: connectProcess
 
         onExited: function (exitCode) {
-            if (!root.opened || !root.pendingNetwork) {
-                root.passwordRequested = false;
+            if (exitCode === 0) {
+                root.pendingNetwork = null;
                 return;
             }
 
-            if (exitCode !== 0 && root.pendingNetwork && root.pendingNetwork.security !== "open") {
+            root.clearNetworkTransition();
+            if (!root.opened || !root.pendingNetwork) {
+                root.passwordRequested = false;
+                root.pendingNetwork = null;
+            } else if (root.pendingNetwork.security !== "open") {
                 root.passwordRequested = true;
                 Qt.callLater(function () {
                     passwordInput.forceActiveFocus(Qt.OtherFocusReason);
                 });
-            } else if (exitCode !== 0) {
-                root.errorMessage = "Could not connect to the network";
-                root.pendingNetwork = null;
             } else {
+                root.errorMessage = "Could not connect to the network";
                 root.pendingNetwork = null;
             }
             refreshTimer.restart();
@@ -290,6 +504,89 @@ BarPopup {
             onStreamFinished: {
                 if (root.opened && root.pendingNetwork && String(text || "").trim())
                     root.errorMessage = String(text).trim();
+            }
+        }
+    }
+
+    Process {
+        id: disconnectProcess
+
+        onExited: function (exitCode) {
+            if (exitCode === 0)
+                return;
+
+            root.clearNetworkTransition();
+            if (root.errorMessage === "")
+                root.errorMessage = "Could not disconnect from the network";
+            refreshTimer.restart();
+        }
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                var message = root.stripAnsi(text).trim();
+                if (root.opened && message)
+                    root.errorMessage = message;
+            }
+        }
+    }
+
+    Process {
+        id: knownListProcess
+
+        command: ["iwctl", "--dont-ask", "known-networks", "list"]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.parseKnownNetworks(text)
+        }
+    }
+
+    Process {
+        id: knownDetailsProcess
+
+        onExited: function (exitCode) {
+            if (exitCode !== 0 && root.knownDetailsName !== "")
+                root.updateKnownNetwork(root.knownDetailsName, false, false);
+            Qt.callLater(root.loadNextKnownNetworkDetails);
+        }
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var match = root.stripAnsi(text).match(/AutoConnect\s+(yes|no)\b/i);
+                if (root.knownDetailsName !== "" && match)
+                    root.updateKnownNetwork(root.knownDetailsName, match[1].toLowerCase() === "yes", true);
+            }
+        }
+    }
+
+    Process {
+        id: knownActionProcess
+
+        onExited: function (exitCode) {
+            if (exitCode === 0) {
+                root.knownActionError = "";
+                if (root.knownActionKind === "forget") {
+                    root.removeKnownNetwork(root.knownActionName);
+                    root.closeKnownConfiguration();
+                } else if (root.knownActionKind === "autoconnect") {
+                    var network = root.knownNetwork(root.knownActionName);
+                    if (network)
+                        root.updateKnownNetwork(network.name, !network.autoConnect, true);
+                }
+            } else {
+                root.knownActionError = root.knownActionProcessError || (root.knownActionKind === "forget" ? "Could not forget network" : "Could not change auto-connect");
+            }
+
+            root.knownActionName = "";
+            root.knownActionKind = "";
+            root.knownActionProcessError = "";
+            knownRefreshTimer.restart();
+        }
+
+        stderr: StdioCollector {
+            onStreamFinished: {
+                var message = root.stripAnsi(text).trim();
+                if (message)
+                    root.knownActionProcessError = message;
             }
         }
     }
@@ -317,6 +614,39 @@ BarPopup {
 
         interval: 900
         onTriggered: root.refresh()
+    }
+
+    Timer {
+        interval: 500
+        repeat: true
+        running: root.networkTransitionState !== ""
+
+        onTriggered: {
+            if (!connectProcess.running && !disconnectProcess.running) {
+                root.transitionPollAttempts++;
+                if (root.transitionPollAttempts >= 60) {
+                    root.errorMessage = root.networkTransitionState === "connecting" ? "Connection timed out" : "Disconnection timed out";
+                    root.clearNetworkTransition();
+                    root.refresh();
+                    return;
+                }
+            }
+
+            if (!interfaceProcess.running)
+                interfaceProcess.running = true;
+        }
+    }
+
+    Timer {
+        id: knownRefreshTimer
+
+        interval: 300
+        onTriggered: {
+            if (knownListProcess.running || knownDetailsProcess.running || knownActionProcess.running)
+                restart();
+            else
+                root.refreshKnownNetworks();
+        }
     }
 
     Column {
@@ -503,18 +833,104 @@ BarPopup {
                 Repeater {
                     model: root.networks
 
-                    ActionRow {
+                    Item {
+                        id: availableEntry
+
                         required property var modelData
+                        readonly property var savedNetwork: root.knownNetwork(modelData.name)
+                        readonly property bool configurationExpanded: !!savedNetwork && root.configuredKnownNetwork === modelData.name
+                        readonly property string transition: root.transitionNetworkName === modelData.name ? root.networkTransitionState : ""
 
                         width: networkList.width
-                        icon: root.signalIcon(modelData.signal)
-                        label: modelData.name
-                        detail: (modelData.security === "open" ? "Open" : "Secured") + " · " + modelData.signal + "%" + (modelData.connected ? " · Connected" : "")
-                        selected: modelData.connected
-                        accent: Theme.sky
-                        enabled: !connectProcess.running
-                        opacity: enabled ? 1 : 0.55
-                        onActivated: root.connectNetwork(modelData)
+                        implicitHeight: availableColumn.implicitHeight
+
+                        Column {
+                            id: availableColumn
+
+                            width: parent.width
+                            spacing: 4
+
+                            ActionRow {
+                                id: availableRow
+
+                                width: parent.width
+                                icon: root.signalIcon(availableEntry.modelData.signal)
+                                label: availableEntry.modelData.name
+                                detail: root.networkDetail(availableEntry.modelData, !!availableEntry.savedNetwork, availableEntry.transition, availableEntry.configurationExpanded)
+                                selected: availableEntry.modelData.connected
+                                accent: Theme.sky
+                                enabled: root.networkTransitionState === "" && !connectProcess.running && !disconnectProcess.running && !knownActionProcess.running
+                                opacity: availableEntry.transition !== "" || knownActionProcess.running ? 0.55 : 1
+
+                                function keyboardConfigure() {
+                                    if (availableEntry.savedNetwork)
+                                        root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                }
+
+                                onActivated: root.connectNetwork(availableEntry.modelData)
+                                onSecondaryActivated: {
+                                    if (availableEntry.savedNetwork)
+                                        root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                }
+                            }
+
+                            Loader {
+                                id: networkConfigurationLoader
+
+                                x: 24
+                                width: parent.width - x
+                                active: availableEntry.configurationExpanded
+                                visible: active
+                                height: active && item ? item.implicitHeight : 0
+
+                                sourceComponent: InlineSettings {
+                                    width: networkConfigurationLoader.width
+                                    accent: Theme.sky
+
+                                    PopupSection {
+                                        width: parent.width
+                                        height: 24
+                                        text: "NETWORK SETTINGS"
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+
+                                    ActionRow {
+                                        width: parent.width
+                                        icon: availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnect ? "󰄬" : "󰝦"
+                                        label: "Auto-connect"
+                                        detail: availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown ? (availableEntry.savedNetwork.autoConnect ? "Enabled" : "Disabled") : "Loading…"
+                                        selected: !!availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown && availableEntry.savedNetwork.autoConnect
+                                        accent: Theme.sky
+                                        enabled: !!availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown && !knownListProcess.running && !knownDetailsProcess.running && !knownActionProcess.running
+                                        opacity: enabled ? 1 : 0.55
+                                        onActivated: root.setKnownAutoConnect(availableEntry.savedNetwork)
+                                    }
+
+                                    ActionRow {
+                                        width: parent.width
+                                        icon: "󰆴"
+                                        label: "Forget network"
+                                        detail: "Remove the saved network"
+                                        accented: true
+                                        accent: Theme.red
+                                        enabled: !!availableEntry.savedNetwork && !knownListProcess.running && !knownDetailsProcess.running && !knownActionProcess.running
+                                        opacity: enabled ? 1 : 0.55
+                                        onActivated: root.forgetKnownNetwork(availableEntry.savedNetwork)
+                                    }
+
+                                    Text {
+                                        width: parent.width
+                                        height: visible ? implicitHeight + 8 : 0
+                                        visible: availableEntry.configurationExpanded && root.knownActionError !== ""
+                                        text: root.knownActionError
+                                        color: Theme.red
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        wrapMode: Text.Wrap
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

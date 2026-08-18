@@ -176,9 +176,18 @@ filter_pkgs "$OUT/packages-pacman.txt" $pacman_filter
 pacman -Qqm > "$OUT/packages-aur.txt"
 filter_pkgs "$OUT/packages-aur.txt" $aur_filter
 
+# Flatpak applications (system and user installations)
+if command -q flatpak
+    flatpak list --app --columns=application | sort -u > "$OUT/packages-flatpak.txt"
+else
+    touch "$OUT/packages-flatpak.txt"
+    warn "  flatpak is not installed; packages-flatpak.txt is empty"
+end
+
 ok "  packages-pacman.txt"
 ok "  packages-aur.txt"
-warn "  Review and tag hardware-specific packages in packages.txt"
+ok "  packages-flatpak.txt"
+warn "  Review and tag hardware-specific packages in the Pacman and AUR lists"
 
 # ── git init hint ────────────────────────────────────────────────────────────
 step "Done"

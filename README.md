@@ -22,7 +22,7 @@ The installer will:
 
 - Detect GPU/CPU and skip irrelevant packages
 - Install paru
-- Install all packages from `packages-aur.txt` + `packages-pacman.txt`
+- Install all packages from `packages-pacman.txt`, `packages-aur.txt`, and `packages-flatpak.txt`
 - Copy all home dotfiles directly into `$HOME`
 - Copy system configs
 - Enable system + user services
@@ -57,6 +57,7 @@ arch-rice/
 ├── export.fish           ← snapshot live system into this layout
 ├── packages-pacman.txt   ← pacman packages, tagged by hardware
 ├── packages-aur.txt      ← AUR packages, tagged by hardware
+├── packages-flatpak.txt  ← Flatpak application IDs installed from Flathub
 │
 ├── home/                 ← copied directly into $HOME
 │   ├── hypr/             → .config/hypr/

@@ -130,6 +130,7 @@ step "Installing packages"
 
 set pacman_file "$DOTFILES_DIR/packages-pacman.txt"
 set aur_file    "$DOTFILES_DIR/packages-aur.txt"
+set flatpak_file "$DOTFILES_DIR/packages-flatpak.txt"
 
 # build skip tags based on hardware
 set skip_tags
@@ -172,6 +173,7 @@ end
 
 set pacman_pkgs (parse_pkgs $pacman_file $skip_tags)
 set aur_pkgs    (parse_pkgs $aur_file    $skip_tags)
+set flatpak_apps (parse_pkgs $flatpak_file)
 
 if test (count $pacman_pkgs) -gt 0
     sudo pacman -Syu --noconfirm $pacman_pkgs
@@ -183,6 +185,22 @@ if test (count $aur_pkgs) -gt 0
 end
 
 ok "Packages installed"
+
+# ── install Flatpak applications ──────────────────────────────────────────
+step "Installing Flatpak applications"
+
+sudo flatpak remote-add --system --if-not-exists \
+    flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+or err "Failed to configure Flathub"
+
+if test (count $flatpak_apps) -gt 0
+    sudo flatpak install --system --noninteractive --or-update flathub $flatpak_apps
+    or err "Flatpak install failed"
+else
+    ok "No Flatpak applications listed"
+end
+
+ok "Flatpak applications installed"
 
 # ── copy dotfiles ────────────────────────────────────────────────────────────
 step "Copying dotfiles to \$HOME"

@@ -20,6 +20,7 @@ fastfetch
 fd
 fio
 fish
+flatpak
 geary
 git
 gnome-keyring

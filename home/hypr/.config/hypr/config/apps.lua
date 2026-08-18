@@ -22,7 +22,9 @@ local apps = {
     systemMonitor = "btop",
     packageInstall = "package install",
     aurInstall = "AUR install",
+    flatpakInstall = "Flatpak install",
     packageRemove = "package removal",
+    flatpakRemove = "Flatpak removal",
     systemUpdate = "system update",
 }
 

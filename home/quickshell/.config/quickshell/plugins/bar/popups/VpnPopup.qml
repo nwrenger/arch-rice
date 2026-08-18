@@ -283,46 +283,30 @@ BarPopup {
                             onActivated: root.toggleCountry(countryGroup.modelData.code)
                         }
 
-                        Item {
+                        InlineSettings {
+                            id: citySettings
+
                             x: 24
                             width: countryGroup.width - x
-                            height: root.countryExpanded(countryGroup.modelData.code) ? cityColumn.implicitHeight + 8 : 0
+                            height: root.countryExpanded(countryGroup.modelData.code) ? implicitHeight : 0
                             visible: height > 0
+                            accent: Theme.mauve
+                            spacing: 3
 
-                            Rectangle {
-                                anchors.left: parent.left
-                                anchors.top: parent.top
-                                anchors.bottom: parent.bottom
-                                anchors.topMargin: 4
-                                anchors.bottomMargin: 4
-                                width: 2
-                                radius: 1
-                                color: Theme.mauve
-                                opacity: 0.65
-                            }
+                            Repeater {
+                                id: cityRepeater
 
-                            Column {
-                                id: cityColumn
+                                model: root.countryExpanded(countryGroup.modelData.code) ? countryGroup.modelData.cities : []
 
-                                x: 14
-                                width: parent.width - x
-                                spacing: 3
+                                ActionRow {
+                                    required property var modelData
 
-                                Repeater {
-                                    id: cityRepeater
-
-                                    model: root.countryExpanded(countryGroup.modelData.code) ? countryGroup.modelData.cities : []
-
-                                    ActionRow {
-                                        required property var modelData
-
-                                        width: cityColumn.width
-                                        label: modelData.label
-                                        reserveIconSpace: false
-                                        selected: countryGroup.modelData.code === root.selectedCountryCode && modelData.code === root.selectedCityCode
-                                        accent: Theme.mauve
-                                        onActivated: root.selectLocation(countryGroup.modelData, modelData)
-                                    }
+                                    width: citySettings.contentWidth
+                                    label: modelData.label
+                                    reserveIconSpace: false
+                                    selected: countryGroup.modelData.code === root.selectedCountryCode && modelData.code === root.selectedCityCode
+                                    accent: Theme.mauve
+                                    onActivated: root.selectLocation(countryGroup.modelData, modelData)
                                 }
                             }
                         }

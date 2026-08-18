@@ -7,3 +7,4 @@ PopupHeader 1.0 PopupHeader.qml
 PopupSection 1.0 PopupSection.qml
 PopupSlider 1.0 PopupSlider.qml
 WheelScrollView 1.0 WheelScrollView.qml
+InlineSettings 1.0 InlineSettings.qml

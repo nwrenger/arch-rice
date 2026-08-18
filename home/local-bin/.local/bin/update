@@ -1,21 +1,13 @@
 #!/usr/bin/env fish
 
 function confirm-prompt
-    set -l pkg_list
-    for package in $argv
-        set -a pkg_list "  • $package"
-    end
-
     gum style \
         --border rounded \
         --border-foreground 6 \
         --padding "1 2" \
         "󰚰 Pending Updates" \
         "" \
-        $pkg_list \
-        "" \
-        "• A Btrfs snapshot will be created before updating." \
-        "• You cannot stop the update once it starts."
+        $argv
 
     echo
 
@@ -53,102 +45,185 @@ or begin
 end
 echo ""
 
-# Check for updates, exit early if there are none
+# Check for updates, including Flatpaks, and exit early if there are none
 set_color cyan
-echo " Checking for updates..."
+echo " Checking for system package updates..."
 set_color normal
 paru -Sy
-set updates (paru -Qu 2>/dev/null)
+set system_updates (paru -Qu 2>/dev/null)
 echo ""
-if test -z "$updates"
+
+set flatpak_updates
+set FLATPAK_CHECK_STATUS 0
+if type -q flatpak
+    set_color cyan
+    echo " Checking for Flatpak updates..."
+    set_color normal
+    set flatpak_updates (flatpak remote-ls --updates --columns=application,name,origin 2>/dev/null)
+    set FLATPAK_CHECK_STATUS $status
+    if test $FLATPAK_CHECK_STATUS -ne 0
+        set_color yellow
+        echo "󰔓 Could not check for Flatpak updates."
+        set_color normal
+    end
+end
+
+echo ""
+if test (count $system_updates) -eq 0; and test (count $flatpak_updates) -eq 0
+    if test $FLATPAK_CHECK_STATUS -ne 0
+        set_color yellow
+        echo "󰔓 System packages are up to date, but Flatpak updates could not be checked."
+        set_color normal
+        exit 0
+    end
+
     set_color green
     echo "󰸞 System is already up to date."
     set_color normal
     exit 0
 end
 
-confirm-prompt $updates
+set pending_updates
+if test (count $system_updates) -gt 0
+    set -a pending_updates "󰣇 System packages"
+    for package in $system_updates
+        set -a pending_updates "  • $package"
+    end
+end
+
+if test (count $flatpak_updates) -gt 0
+    if test (count $pending_updates) -gt 0
+        set -a pending_updates ""
+    end
+    set -a pending_updates " Flatpaks"
+    for package in $flatpak_updates
+        set fields (string split \t -- $package)
+        set application_id $fields[1]
+        set application_name $fields[2]
+        if test -n "$application_name" -a "$application_name" != "$application_id"
+            set -a pending_updates "  • $application_name ($application_id)"
+        else
+            set -a pending_updates "  • $application_id"
+        end
+    end
+end
+
+set -a pending_updates ""
+if test (count $system_updates) -gt 0
+    set -a pending_updates "• A Btrfs snapshot will be created before system packages are updated."
+end
+set -a pending_updates "• You cannot stop the update once it starts."
+
+confirm-prompt $pending_updates
 echo ""
 
-# Create snapshot
-set DATE (date +"%Y-%m-%d_%H-%M")
-set SNAPSHOT_NAME "pre-update_$DATE"
-set_color cyan
-echo "󰚰 Creating btrfs snapshot: $SNAPSHOT_NAME"
-set_color normal
-set snapshot_output (sudo snapper create \
-    --description "$SNAPSHOT_NAME" \
-    --cleanup-algorithm number \
-    --print-number)
-if test $status -ne 0 -o -z "$snapshot_output"
-    echo ""
-    set_color red
-    echo "󰅚 Failed to create Snapper snapshot."
+set SYSTEM_UPDATE_STATUS 0
+set FLATPAK_UPDATE_STATUS 0
+set LIMINE_SYNC_STATUS 0
+set DID_SYSTEM_UPDATE 0
+
+if test (count $system_updates) -gt 0
+    set DID_SYSTEM_UPDATE 1
+
+    # Create snapshot before changing system packages
+    set DATE (date +"%Y-%m-%d_%H-%M")
+    set SNAPSHOT_NAME "pre-update_$DATE"
+    set_color cyan
+    echo "󰚰 Creating btrfs snapshot: $SNAPSHOT_NAME"
     set_color normal
-    exit 1
-end
-set SNAPSHOT_NUM (string trim -- $snapshot_output)
-echo ""
-
-set_color cyan
-echo "󰁯 Syncing snapshot with Limine..."
-set_color normal
-echo ""
-sudo limine-snapper-sync
-if test $status -ne 0
+    set snapshot_output (sudo snapper create \
+        --description "$SNAPSHOT_NAME" \
+        --cleanup-algorithm number \
+        --print-number)
+    if test $status -ne 0 -o -z "$snapshot_output"
+        echo ""
+        set_color red
+        echo "󰅚 Failed to create Snapper snapshot."
+        set_color normal
+        exit 1
+    end
+    set SNAPSHOT_NUM (string trim -- $snapshot_output)
     echo ""
-    set_color red
-    echo "󰅚 limine-snapper-sync failed."
-    echo "    Snapshot #$SNAPSHOT_NUM was created, but Limine was not updated."
+
+    set_color cyan
+    echo "󰁯 Syncing snapshot with Limine..."
     set_color normal
-    exit 1
-end
-echo ""
-
-set_color cyan
-echo "󰚰 Running full system update..."
-set_color normal
-echo ""
-paru -Syu
-set UPDATE_STATUS $status
-echo ""
-
-set_color cyan
-echo "󰁯 Refreshing Limine snapshot metadata..."
-set_color normal
-echo ""
-sudo limine-snapper-sync
-set LIMINE_SYNC_STATUS $status
-echo ""
-
-if test $UPDATE_STATUS -eq 0
-    set_color green
-    echo "󰸞 System update was successful."
-else
-    set_color red
-    echo "󰅚 System update failed."
-end
-echo ""
-
-set_color cyan
-echo "󰁯 Snapshot #$SNAPSHOT_NUM created: $SNAPSHOT_NAME"
-echo "󰁯 To roll back with Snapper: sudo snapper rollback $SNAPSHOT_NUM"
-echo "󰁯 Or boot the snapshot from Limine's snapshot menu"
-set_color normal
-
-if test $LIMINE_SYNC_STATUS -ne 0
     echo ""
-    set_color yellow
-    echo "󰔓 Warning: Limine sync failed after the update."
-    echo "   Try running: sudo limine-snapper-sync"
-    set_color normal
-end
-echo ""
+    sudo limine-snapper-sync
+    if test $status -ne 0
+        echo ""
+        set_color red
+        echo "󰅚 limine-snapper-sync failed."
+        echo "    Snapshot #$SNAPSHOT_NUM was created, but Limine was not updated."
+        set_color normal
+        exit 1
+    end
+    echo ""
 
-if test $UPDATE_STATUS -ne 0
+    set_color cyan
+    echo "󰚰 Running full system update..."
+    set_color normal
+    echo ""
+    paru -Syu
+    set SYSTEM_UPDATE_STATUS $status
+    echo ""
+
+    set_color cyan
+    echo "󰁯 Refreshing Limine snapshot metadata..."
+    set_color normal
+    echo ""
+    sudo limine-snapper-sync
+    set LIMINE_SYNC_STATUS $status
+    echo ""
+
+    if test $SYSTEM_UPDATE_STATUS -eq 0
+        set_color green
+        echo "󰸞 System package update was successful."
+    else
+        set_color red
+        echo "󰅚 System package update failed."
+    end
+    echo ""
+
+    set_color cyan
+    echo "󰁯 Snapshot #$SNAPSHOT_NUM created: $SNAPSHOT_NAME"
+    echo "󰁯 To roll back with Snapper: sudo snapper rollback $SNAPSHOT_NUM"
+    echo "󰁯 Or boot the snapshot from Limine's snapshot menu"
+    set_color normal
+
+    if test $LIMINE_SYNC_STATUS -ne 0
+        echo ""
+        set_color yellow
+        echo "󰔓 Warning: Limine sync failed after the update."
+        echo "   Try running: sudo limine-snapper-sync"
+        set_color normal
+    end
+    echo ""
+end
+
+if test (count $flatpak_updates) -gt 0
+    set_color cyan
+    echo " Updating Flatpaks..."
+    set_color normal
+    echo ""
+    flatpak update
+    set FLATPAK_UPDATE_STATUS $status
+    echo ""
+
+    if test $FLATPAK_UPDATE_STATUS -eq 0
+        set_color green
+        echo "󰸞 Flatpak update was successful."
+    else
+        set_color red
+        echo "󰅚 Flatpak update failed."
+    end
+    echo ""
+end
+
+if test $SYSTEM_UPDATE_STATUS -ne 0 -o $FLATPAK_UPDATE_STATUS -ne 0
     exit 0
 end
 
-if restart-prompt
+if test $DID_SYSTEM_UPDATE -eq 1; and restart-prompt
     shell session reboot
 end

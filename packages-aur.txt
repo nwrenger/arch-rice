@@ -1,8 +1,6 @@
-blockbench-bin
 catppuccin-cursors-mocha
 enpass-bin
 grimblast-git
-heroic-games-launcher-bin
 iriunwebcam-bin
 limine-entry-tool
 limine-snapper-sync
@@ -14,7 +12,6 @@ osu-mime
 protonup-qt-bin
 python-fpdf2
 python-pkg_resources
-stoat-desktop-bin
 ttf-ia-writer
 uxplay
 visual-studio-code-bin

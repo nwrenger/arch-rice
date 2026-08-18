@@ -14,7 +14,6 @@ Item {
 
     required property var shell
     required property var audio
-    required property var media
     required property var status
     property date now: new Date()
     property string activePopup: ""
@@ -138,8 +137,6 @@ Item {
                         return null;
                     if (root.activePopup === "calendar")
                         return calendarPopup;
-                    if (root.activePopup === "media")
-                        return mediaPopup;
                     if (root.activePopup === "audio")
                         return audioPopup;
                     if (root.activePopup === "vpn")
@@ -276,17 +273,6 @@ Item {
                     }
 
                     BarButton {
-                        id: mediaButton
-
-                        popupName: "media"
-                        visible: root.media.players.length > 0
-                        text: root.media.activePlayer && root.media.activePlayer.isPlaying ? "󰐊" : "󰏤"
-                        foreground: Theme.green
-                        active: root.popupOpened("media", barWindow.modelData.name)
-                        onClicked: root.togglePopup("media", barWindow.modelData.name)
-                    }
-
-                    BarButton {
                         id: audioButton
 
                         popupName: "audio"
@@ -373,15 +359,6 @@ Item {
                     anchorItem: clockButton
                     opened: root.popupOpened("calendar", barWindow.modelData.name)
                     onCloseRequested: root.closePopup("calendar", barWindow.modelData.name)
-                }
-
-                MediaPopup {
-                    id: mediaPopup
-
-                    anchorItem: mediaButton
-                    media: root.media
-                    opened: root.popupOpened("media", barWindow.modelData.name)
-                    onCloseRequested: root.closePopup("media", barWindow.modelData.name)
                 }
 
                 AudioPopup {
