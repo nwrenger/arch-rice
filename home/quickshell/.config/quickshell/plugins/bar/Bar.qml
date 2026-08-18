@@ -19,9 +19,6 @@ Item {
     property date now: new Date()
     property string activePopup: ""
     property string activePopupScreen: ""
-    property var trayMenuItem: null
-    property var trayMenuAnchor: null
-    property string trayMenuScreen: ""
     readonly property var bluetoothAdapter: Bluetooth.defaultAdapter
     readonly property int bluetoothConnections: {
         var count = 0;
@@ -43,6 +40,7 @@ Item {
     }
 
     function focusWorkspace(id) {
+        closeActivePopup();
         Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + id + "\" })"]);
     }
 
@@ -66,7 +64,6 @@ Item {
     }
 
     function togglePopup(name, screenName) {
-        closeTrayMenu();
         if (activePopup === name && activePopupScreen === screenName) {
             activePopup = "";
             activePopupScreen = "";
@@ -80,6 +77,11 @@ Item {
         return activePopup === name && activePopupScreen === screenName;
     }
 
+    function closeActivePopup() {
+        activePopup = "";
+        activePopupScreen = "";
+    }
+
     function closePopup(name, screenName) {
         if (activePopup !== name || (screenName && activePopupScreen !== screenName))
             return;
@@ -88,41 +90,24 @@ Item {
         activePopupScreen = "";
     }
 
-    function openTrayMenu(item, anchorItem, screenName) {
-        if (!item || !item.menu)
+    function displayTrayMenu(item, anchorItem) {
+        if (!item || !item.hasMenu || !anchorItem || !anchorItem.QsWindow.window)
             return;
 
         activePopup = "";
         activePopupScreen = "";
-        if (trayMenuItem === item && trayMenuScreen === screenName) {
-            closeTrayMenu();
-            return;
-        }
-
-        trayMenuItem = item;
-        trayMenuAnchor = anchorItem;
-        trayMenuScreen = screenName;
-    }
-
-    function closeTrayMenu(screenName) {
-        if (screenName && trayMenuScreen !== screenName)
-            return;
-
-        trayMenuItem = null;
-        trayMenuAnchor = null;
-        trayMenuScreen = "";
+        var window = anchorItem.QsWindow.window;
+        var point = window.contentItem.mapFromItem(anchorItem, anchorItem.width / 2, anchorItem.height / 2);
+        item.display(window, Math.round(point.x), Math.round(point.y));
     }
 
     function prepareBarInteraction(screenName, interaction) {
         var requestedPopup = interaction && interaction.popupName ? String(interaction.popupName) : "";
-        var requestedTrayItem = interaction ? interaction.trayItem : null;
 
         if (activePopup !== "" && (activePopupScreen !== screenName || activePopup !== requestedPopup)) {
             activePopup = "";
             activePopupScreen = "";
         }
-        if (trayMenuItem !== null && (trayMenuScreen !== screenName || trayMenuItem !== requestedTrayItem))
-            closeTrayMenu();
     }
 
     function togglePopupForFocusedScreen(name) {
@@ -146,11 +131,9 @@ Item {
                 id: barWindow
 
                 required property var modelData
-                readonly property bool popupAcceptsKeyboard: (root.activePopup !== "" && root.activePopupScreen === modelData.name) || (root.trayMenuItem !== null && root.trayMenuScreen === modelData.name)
+                readonly property bool popupAcceptsKeyboard: root.activePopup !== "" && root.activePopupScreen === modelData.name
 
                 function activePopupObject() {
-                    if (root.trayMenuItem !== null && root.trayMenuScreen === modelData.name)
-                        return trayMenuPopup;
                     if (root.activePopupScreen !== modelData.name)
                         return null;
                     if (root.activePopup === "calendar")
@@ -193,7 +176,9 @@ Item {
 
                 onPopupAcceptsKeyboardChanged: {
                     if (popupAcceptsKeyboard)
-                        Qt.callLater(function() { keyboardRouter.forceActiveFocus(Qt.OtherFocusReason); });
+                        Qt.callLater(function () {
+                            keyboardRouter.forceActiveFocus(Qt.OtherFocusReason);
+                        });
                 }
 
                 Item {
@@ -202,7 +187,7 @@ Item {
                     anchors.fill: parent
                     focus: barWindow.popupAcceptsKeyboard
                     Keys.priority: Keys.BeforeItem
-                    Keys.onPressed: function(event) {
+                    Keys.onPressed: function (event) {
                         var popup = barWindow.activePopupObject();
                         if (popup)
                             popup.handleKey(event);
@@ -236,11 +221,11 @@ Item {
                     }
                 }
 
-                    BarButton {
-                        id: clockButton
+                BarButton {
+                    id: clockButton
 
-                        popupName: "calendar"
-                        anchors.centerIn: parent
+                    popupName: "calendar"
+                    anchors.centerIn: parent
                     text: Qt.formatDateTime(root.now, "dddd HH:mm")
                     foreground: Theme.blue
                     active: root.popupOpened("calendar", barWindow.modelData.name)
@@ -274,17 +259,15 @@ Item {
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 cursorShape: Qt.PointingHandCursor
                                 onPressed: barWindow.barInteraction({
-                                    "popupName": "",
-                                    "trayItem": modelData
+                                    "popupName": ""
                                 })
                                 onClicked: function (event) {
                                     if (event.button === Qt.RightButton) {
-                                        root.openTrayMenu(modelData, trayItem, barWindow.modelData.name);
+                                        root.displayTrayMenu(modelData, trayItem);
                                         event.accepted = true;
                                     } else if (modelData.onlyMenu) {
-                                        root.openTrayMenu(modelData, trayItem, barWindow.modelData.name);
+                                        root.displayTrayMenu(modelData, trayItem);
                                     } else {
-                                        root.closeTrayMenu();
                                         modelData.activate();
                                     }
                                 }
@@ -377,7 +360,10 @@ Item {
                     BarButton {
                         text: " " + root.status.cpuUsage + "%"
                         foreground: Theme.green
-                        onClicked: Quickshell.execDetached(["alacritty", "--title", "btop", "-e", "btop"])
+                        onClicked: {
+                            root.closeActivePopup();
+                            Quickshell.execDetached(["alacritty", "--title", "btop", "-e", "btop"]);
+                        }
                     }
                 }
 
@@ -387,15 +373,6 @@ Item {
                     anchorItem: clockButton
                     opened: root.popupOpened("calendar", barWindow.modelData.name)
                     onCloseRequested: root.closePopup("calendar", barWindow.modelData.name)
-                }
-
-                TrayMenuPopup {
-                    id: trayMenuPopup
-
-                    anchorItem: root.trayMenuScreen === barWindow.modelData.name && root.trayMenuAnchor ? root.trayMenuAnchor : mediaButton
-                    trayItem: root.trayMenuItem
-                    opened: !!root.trayMenuItem && root.trayMenuScreen === barWindow.modelData.name
-                    onCloseRequested: root.closeTrayMenu(barWindow.modelData.name)
                 }
 
                 MediaPopup {

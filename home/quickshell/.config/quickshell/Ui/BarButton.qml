@@ -32,8 +32,7 @@ Rectangle {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onPressed: Util.callAncestor(root.parent, "barInteraction", {
-            "popupName": root.popupName,
-            "trayItem": null
+            "popupName": root.popupName
         })
         onClicked: function(event) { root.clicked(event.button) }
         onWheel: function(event) { root.wheel(event.angleDelta.y) }

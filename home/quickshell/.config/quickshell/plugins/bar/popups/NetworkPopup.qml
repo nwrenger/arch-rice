@@ -331,6 +331,15 @@ BarPopup {
             accent: Theme.sky
         }
 
+        PopupButton {
+            text: "Refresh"
+            icon: "󰑓"
+            onClicked: {
+                root.status.refresh();
+                root.refresh();
+            }
+        }
+
         PopupSection {
             width: parent.width
             height: 22
@@ -381,16 +390,6 @@ BarPopup {
                     font.pixelSize: 11
                     elide: Text.ElideRight
                 }
-            }
-
-        }
-
-        PopupButton {
-            text: "Refresh"
-            icon: "󰑓"
-            onClicked: {
-                root.status.refresh();
-                root.refresh();
             }
         }
 

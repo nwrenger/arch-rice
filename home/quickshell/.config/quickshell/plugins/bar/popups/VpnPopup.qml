@@ -157,9 +157,13 @@ BarPopup {
     Connections {
         target: root.status
 
-        function onVpnCityCodeChanged() { root.syncSelectionWhenReady(); }
+        function onVpnCityCodeChanged() {
+            root.syncSelectionWhenReady();
+        }
 
-        function onVpnCountryCodeChanged() { root.syncSelectionWhenReady(); }
+        function onVpnCountryCodeChanged() {
+            root.syncSelectionWhenReady();
+        }
     }
 
     Process {
@@ -189,33 +193,6 @@ BarPopup {
             accent: Theme.mauve
         }
 
-        Rectangle {
-            width: parent.width
-            height: 56
-            radius: Theme.radius
-            color: Theme.surface0
-
-            Text {
-                anchors.left: parent.left
-                anchors.leftMargin: 16
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.status.vpnConnected ? "Your traffic is protected" : "VPN is disconnected"
-                color: root.status.vpnConnected ? Theme.green : Theme.subtext0
-                font.family: Theme.fontFamily
-                font.pixelSize: 12
-            }
-
-            Rectangle {
-                width: 10
-                height: 10
-                radius: 5
-                anchors.right: parent.right
-                anchors.rightMargin: 18
-                anchors.verticalCenter: parent.verticalCenter
-                color: root.status.vpnConnected ? Theme.green : Theme.overlay0
-            }
-        }
-
         Row {
             width: parent.width
             height: 36
@@ -230,7 +207,7 @@ BarPopup {
             }
 
             PopupButton {
-                text: "Refresh locations"
+                text: "Refresh"
                 icon: "󰑓"
                 onClicked: root.refreshLocations()
             }

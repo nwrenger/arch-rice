@@ -1,3 +1,5 @@
+//@ pragma UseQApplication
+
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -164,7 +166,6 @@ ShellRoot {
 
         function popupClose() : string {
             bar.closePopup(bar.activePopup, bar.activePopupScreen);
-            bar.closeTrayMenu();
             return "ok";
         }
 
