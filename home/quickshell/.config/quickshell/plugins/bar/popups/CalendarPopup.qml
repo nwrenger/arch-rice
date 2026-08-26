@@ -54,7 +54,7 @@ BarPopup {
             width: parent.width
             icon: "󰃭"
             title: Qt.formatDate(root.now, "dddd, d MMMM")
-            subtitle: Qt.formatDate(root.now, "yyyy")
+            subtitle: Qt.formatDate(root.now, "d.MM.yyyy")
             accent: Theme.blue
         }
 
@@ -85,7 +85,6 @@ BarPopup {
                 text: "›"
                 onClicked: root.changeMonth(1)
             }
-
         }
 
         Row {
@@ -108,9 +107,7 @@ BarPopup {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
-
             }
-
         }
 
         Grid {
@@ -139,11 +136,8 @@ BarPopup {
                         font.pixelSize: 12
                         font.bold: root.isToday(parent.day)
                     }
-
                 }
-
             }
-
         }
 
         PopupButton {
@@ -154,7 +148,5 @@ BarPopup {
             accent: Theme.blue
             onClicked: root.resetToday()
         }
-
     }
-
 }

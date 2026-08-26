@@ -19,6 +19,7 @@ Item {
     property var dataRows: []
     property var modeHistory: []
     property var selectedPackages: []
+    property string calcResult: ""
     property string targetScreenName: ""
     property string dataProcessMode: ""
     property string queuedDataMode: ""
@@ -46,6 +47,8 @@ Item {
     readonly property int initialRowsHeight: rowsHeight(staticRows())
     readonly property int visibleRowsHeight: rowsHeight(visibleRows)
     readonly property int minimumCardHeight: compactStaticMenu ? 100 + initialRowsHeight : 440
+
+    signal calculationFinished(string expression, string result)
 
     function rowsHeight(rows) {
         if (rows.length === 0)
@@ -260,22 +263,50 @@ Item {
         return rows;
     }
 
+    function calc(expr) {
+        expr = String(expr || "").trim();
+        if (!expr)
+            return;
+
+        if (qalcProcess.running) {
+            calcTimer.restart();
+            return;
+        }
+
+        qalcProcess.expression = expr;
+        qalcProcess.command = ["qalc", "-t", expr];
+        qalcProcess.running = true;
+    }
+
     function buildRows() {
         if (mode === "apps") {
             var values = DesktopEntries.applications ? DesktopEntries.applications.values : [];
             var matches = AppSearch.search(values, query);
-            var apps = [];
-            for (var i = 0; i < matches.length; i++) {
-                var entry = matches[i].entry;
-                apps.push({
-                    "icon": "󰀻",
-                    "iconSource": Quickshell.iconPath(entry.icon || "", true),
-                    "label": entry.name || entry.id,
-                    "detail": entry.genericName || entry.comment || "",
-                    "desktopId": entry.id
-                });
+
+            // If there are no matches go into math mode
+            if (!matches || matches.length === 0) {
+                return [
+                    {
+                        "icon": "",
+                        "label": calcResult,
+                        "detail": "Select to copy the result",
+                        "copyText": calcResult
+                    }
+                ];
+            } else {
+                var apps = [];
+                for (var i = 0; i < matches.length; i++) {
+                    var entry = matches[i].entry;
+                    apps.push({
+                        "icon": "󰀻",
+                        "iconSource": Quickshell.iconPath(entry.icon || "", true),
+                        "label": entry.name || entry.id,
+                        "detail": entry.genericName || entry.comment || "",
+                        "desktopId": entry.id
+                    });
+                }
+                return apps;
             }
-            return apps;
         }
         if (mode.indexOf("package-") === 0)
             return searchPackages(query.trim().toLowerCase());
@@ -397,6 +428,11 @@ Item {
             setMode(row.target);
             return;
         }
+        if (row.copyText) {
+            Quickshell.clipboardText = row.copyText;
+            close();
+            return;
+        }
         if (row.desktopId) {
             launchApplication(row.desktopId);
             return;
@@ -435,7 +471,14 @@ Item {
             activate(visibleRows[selectedIndex]);
     }
 
-    onQueryChanged: selectedIndex = 0
+    onQueryChanged: {
+        selectedIndex = 0;
+        calcTimer.restart();
+    }
+    onCalculationFinished: function (expression, result) {
+        if (mode === "apps" && query === expression)
+            calcResult = result;
+    }
     onVisibleRowsChanged: {
         if (selectedIndex >= visibleRows.length)
             selectedIndex = Math.max(0, visibleRows.length - 1);
@@ -484,6 +527,29 @@ Item {
             root.queuedDataMode = "";
             if (nextMode && root.mode === nextMode)
                 root.loadModeData();
+        }
+    }
+
+    Process {
+        id: qalcProcess
+        property string expression: ""
+
+        stdout: StdioCollector {
+            onStreamFinished: root.calculationFinished(qalcProcess.expression, text.trim())
+        }
+    }
+
+    Timer {
+        id: calcTimer
+
+        interval: 100
+        onTriggered: {
+            if (root.mode !== "apps" || !root.query.trim())
+                return;
+
+            var values = DesktopEntries.applications ? DesktopEntries.applications.values : [];
+            if (AppSearch.search(values, root.query).length === 0)
+                root.calc(root.query);
         }
     }
 

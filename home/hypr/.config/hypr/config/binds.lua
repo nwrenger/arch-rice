@@ -14,6 +14,7 @@ hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(apps.browser))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(apps.editor))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(apps.messenger))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd(apps.passwordManager))
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(apps.mails))
 
 -- System ctl
 hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.audio))

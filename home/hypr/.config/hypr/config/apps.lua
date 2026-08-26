@@ -13,6 +13,7 @@ local apps = {
     browser = "zen-browser",
     messenger = "discord",
     passwordManager = "enpass",
+    mails = "geary",
 
     audio = "shell popup audio",
     internet = "shell popup network",

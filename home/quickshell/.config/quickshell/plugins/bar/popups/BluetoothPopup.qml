@@ -9,6 +9,7 @@ BarPopup {
 
     readonly property var adapter: Bluetooth.defaultAdapter
     readonly property var devices: sortedDevices()
+    property string configuredDeviceAddress: ""
 
     function sortedDevices() {
         var values = Bluetooth.devices ? Bluetooth.devices.values.slice() : [];
@@ -49,12 +50,56 @@ BarPopup {
             device.pair();
     }
 
+    function deviceAddress(device) {
+        return String(device && device.address || "");
+    }
+
+    function toggleDeviceConfiguration(device) {
+        if (!device || !device.paired)
+            return;
+
+        var address = deviceAddress(device);
+        if (!address)
+            return;
+
+        configuredDeviceAddress = configuredDeviceAddress === address ? "" : address;
+    }
+
+    function closeDeviceConfiguration() {
+        configuredDeviceAddress = "";
+    }
+
+    function forgetDevice(device) {
+        if (!device)
+            return;
+
+        closeDeviceConfiguration();
+        device.forget();
+    }
+
     popupWidth: 390
     popupHeight: 500
+    customKeyHandler: function(event) {
+        if (event.key === Qt.Key_Escape && root.configuredDeviceAddress !== "") {
+            root.closeDeviceConfiguration();
+            return true;
+        }
+
+        if (event.key !== Qt.Key_C)
+            return false;
+
+        var item = root.keyboardNavigationItem;
+        if (!item || typeof item.keyboardConfigure !== "function")
+            return false;
+
+        item.keyboardConfigure();
+        return true;
+    }
     onOpenedChanged: {
         if (adapter && adapter.enabled)
             adapter.discovering = opened;
-
+        if (!opened)
+            closeDeviceConfiguration();
     }
 
     Column {
@@ -134,33 +179,75 @@ BarPopup {
                     model: root.devices
 
                     Item {
+                        id: deviceEntry
+
                         required property var modelData
+                        readonly property string entryAddress: root.deviceAddress(modelData)
+                        readonly property bool configurationExpanded: modelData.paired && root.configuredDeviceAddress === entryAddress
 
                         width: deviceList.width
-                        height: row.implicitHeight
+                        implicitHeight: deviceColumn.implicitHeight
 
-                        ActionRow {
-                            id: row
+                        Column {
+                            id: deviceColumn
 
-                            width: parent.width - (modelData.paired ? 38 : 0)
-                            icon: modelData.connected ? "󰂱" : (modelData.paired ? "󰂯" : "󰂰")
-                            label: root.deviceLabel(modelData)
-                            detail: root.deviceDetail(modelData)
-                            selected: modelData.connected
-                            accent: Theme.sky
-                            onActivated: root.activateDevice(modelData)
+                            width: parent.width
+                            spacing: 4
+
+                            ActionRow {
+                                id: row
+
+                                width: parent.width
+                                icon: deviceEntry.modelData.connected ? "󰂱" : (deviceEntry.modelData.paired ? "󰂯" : "󰂰")
+                                label: root.deviceLabel(deviceEntry.modelData)
+                                detail: root.deviceDetail(deviceEntry.modelData) + (deviceEntry.configurationExpanded ? " · Settings open" : "")
+                                selected: deviceEntry.modelData.connected
+                                accent: Theme.sky
+
+                                function keyboardConfigure() {
+                                    root.toggleDeviceConfiguration(deviceEntry.modelData);
+                                }
+
+                                onActivated: {
+                                    if (root.configuredDeviceAddress !== "" && !deviceEntry.configurationExpanded)
+                                        root.closeDeviceConfiguration();
+                                    root.activateDevice(deviceEntry.modelData);
+                                }
+                                onSecondaryActivated: root.toggleDeviceConfiguration(deviceEntry.modelData)
+                            }
+
+                            Loader {
+                                id: deviceConfigurationLoader
+
+                                x: 24
+                                width: parent.width - x
+                                active: deviceEntry.configurationExpanded
+                                visible: active
+                                height: active && item ? item.implicitHeight : 0
+
+                                sourceComponent: InlineSettings {
+                                    width: deviceConfigurationLoader.width
+                                    accent: Theme.sky
+
+                                    PopupSection {
+                                        width: parent.width
+                                        height: 24
+                                        text: "DEVICE SETTINGS"
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+
+                                    ActionRow {
+                                        width: parent.width
+                                        icon: "󰆴"
+                                        label: "Forget device"
+                                        detail: "Remove the paired device"
+                                        accented: true
+                                        accent: Theme.red
+                                        onActivated: root.forgetDevice(deviceEntry.modelData)
+                                    }
+                                }
+                            }
                         }
-
-                        PopupButton {
-                            visible: modelData.paired
-                            width: 34
-                            height: 34
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "󰆴"
-                            onClicked: modelData.forget()
-                        }
-
                     }
 
                 }
