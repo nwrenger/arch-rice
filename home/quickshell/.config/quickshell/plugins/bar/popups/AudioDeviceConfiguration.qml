@@ -201,7 +201,7 @@ Item {
     Process {
         id: applyProcess
 
-        onExited: function(exitCode) {
+        onExited: function (exitCode) {
             if (exitCode !== 0) {
                 root.finishChange("Could not apply audio device change");
                 return;
@@ -214,7 +214,7 @@ Item {
     Process {
         id: configProcess
 
-        onExited: function(exitCode) {
+        onExited: function (exitCode) {
             root.loading = false;
             if (exitCode !== 0) {
                 if (root.applying)
@@ -264,13 +264,6 @@ Item {
         width: parent.width
         accent: root.output ? Theme.red : Theme.yellow
         spacing: 4
-
-        PopupSection {
-            width: parent.width
-            height: 24
-            text: "DEVICE SETTINGS"
-            verticalAlignment: Text.AlignVCenter
-        }
 
         Text {
             width: parent.width

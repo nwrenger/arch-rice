@@ -1,7 +1,32 @@
 function show_done
     if test $status -eq 0
         echo
-        gum spin --spinner "jump" --title "Press any key to close..." \
-            --title.foreground="#6c7086" -- bash -c 'read -n 1 -s'
+        bash -c '
+            frames=("⢂" "⢁" "⡁" "⡈" "⡐" "⡠" "⢄")
+            frame=0
+            ticks=0
+
+            cleanup() {
+                printf "\r\033[K\033[0m\033[?25h"
+            }
+
+            trap cleanup EXIT INT TERM
+            printf "\033[?25l"
+
+            while true; do
+                printf "\r\033[K\033[38;5;212m%s\033[38;2;108;112;134m Press any key to close..." "${frames[frame]}"
+
+                if IFS= read -r -s -n 1 -t 0.08; then
+                    # Discard input left over by sudo/the launcher. A key only
+                    # closes the prompt after the first few animation frames.
+                    if ((ticks >= 5)); then
+                        break
+                    fi
+                fi
+
+                frame=$(((frame + 1) % ${#frames[@]}))
+                ((ticks++)) || true
+            done
+        '
     end
 end

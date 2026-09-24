@@ -13,7 +13,7 @@ BarPopup {
 
     function sortedDevices() {
         var values = Bluetooth.devices ? Bluetooth.devices.values.slice() : [];
-        values.sort(function(a, b) {
+        values.sort(function (a, b) {
             var rankA = a.connected ? 0 : (a.paired ? 1 : 2);
             var rankB = b.connected ? 0 : (b.paired ? 1 : 2);
             if (rankA !== rankB)
@@ -79,7 +79,7 @@ BarPopup {
 
     popupWidth: 390
     popupHeight: 500
-    customKeyHandler: function(event) {
+    customKeyHandler: function (event) {
         if (event.key === Qt.Key_Escape && root.configuredDeviceAddress !== "") {
             root.closeDeviceConfiguration();
             return true;
@@ -125,7 +125,6 @@ BarPopup {
                 onClicked: {
                     if (root.adapter)
                         Quickshell.execDetached(["bluetoothctl", "power", root.adapter.enabled ? "off" : "on"]);
-
                 }
             }
 
@@ -138,10 +137,8 @@ BarPopup {
                 onClicked: {
                     if (root.adapter)
                         root.adapter.discovering = !root.adapter.discovering;
-
                 }
             }
-
         }
 
         PopupSection {
@@ -229,13 +226,6 @@ BarPopup {
                                     width: deviceConfigurationLoader.width
                                     accent: Theme.sky
 
-                                    PopupSection {
-                                        width: parent.width
-                                        height: 24
-                                        text: "DEVICE SETTINGS"
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-
                                     ActionRow {
                                         width: parent.width
                                         icon: "󰆴"
@@ -249,13 +239,8 @@ BarPopup {
                             }
                         }
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }

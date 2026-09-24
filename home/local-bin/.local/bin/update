@@ -63,7 +63,7 @@ if type -q flatpak
     set FLATPAK_CHECK_STATUS $status
     if test $FLATPAK_CHECK_STATUS -ne 0
         set_color yellow
-        echo "󰔓 Could not check for Flatpak updates."
+        echo " Could not check for Flatpak updates."
         set_color normal
     end
 end
@@ -72,7 +72,7 @@ echo ""
 if test (count $system_updates) -eq 0; and test (count $flatpak_updates) -eq 0
     if test $FLATPAK_CHECK_STATUS -ne 0
         set_color yellow
-        echo "󰔓 System packages are up to date, but Flatpak updates could not be checked."
+        echo " System packages are up to date, but Flatpak updates could not be checked."
         set_color normal
         exit 0
     end
@@ -194,7 +194,7 @@ if test (count $system_updates) -gt 0
     if test $LIMINE_SYNC_STATUS -ne 0
         echo ""
         set_color yellow
-        echo "󰔓 Warning: Limine sync failed after the update."
+        echo " Warning: Limine sync failed after the update."
         echo "   Try running: sudo limine-snapper-sync"
         set_color normal
     end

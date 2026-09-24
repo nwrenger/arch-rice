@@ -88,9 +88,7 @@ BarPopup {
         if (networkTransitionState === "")
             return;
 
-        var finished = networkTransitionState === "connecting"
-            ? stationState === "connected" && currentSsid === transitionNetworkName
-            : stationState === "disconnected" || stationState === "unavailable" || (stationState === "connected" && currentSsid !== transitionNetworkName);
+        var finished = networkTransitionState === "connecting" ? stationState === "connected" && currentSsid === transitionNetworkName : stationState === "disconnected" || stationState === "unavailable" || (stationState === "connected" && currentSsid !== transitionNetworkName);
         if (finished)
             clearNetworkTransition();
     }
@@ -886,13 +884,6 @@ BarPopup {
                                 sourceComponent: InlineSettings {
                                     width: networkConfigurationLoader.width
                                     accent: Theme.sky
-
-                                    PopupSection {
-                                        width: parent.width
-                                        height: 24
-                                        text: "NETWORK SETTINGS"
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
 
                                     ActionRow {
                                         width: parent.width

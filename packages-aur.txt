@@ -1,4 +1,5 @@
 catppuccin-cursors-mocha
+cliamp
 enpass-bin
 grimblast-git
 iriunwebcam-bin

@@ -9,6 +9,7 @@ bluez-utils
 btop
 btrfs-progs
 bun
+chromium
 cross
 cups
 cups-pk-helper
