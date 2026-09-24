@@ -28,6 +28,15 @@ BarPopup {
     property var pendingNetwork: null
     property bool passwordRequested: false
     property string errorMessage: ""
+    property string throughputInterface: ""
+    property real previousRxBytes: 0
+    property real previousTxBytes: 0
+    property real previousSampleTime: 0
+    property real downloadRate: 0
+    property real uploadRate: 0
+    property bool throughputReady: false
+    property int connectionPhraseIndex: 0
+    readonly property var connectionPhrases: ["Wiring bits", "Handling packets", "Sorting frames", "Hauling bytes", "Routing crumbs", "Counting collisions", "Bending light"]
 
     function stripAnsi(value) {
         return String(value || "").replace(/\x1b\[[0-9;]*m/g, "");
@@ -59,17 +68,13 @@ BarPopup {
         return "󰤟";
     }
 
-    function networkDetail(network, known, transition, settingsOpen) {
-        var parts = [known ? "Known" : (network.security === "open" ? "Open" : "Secured"), network.signal + "%"];
-        if (transition === "connecting")
-            parts.push("Connecting…");
-        else if (transition === "disconnecting")
-            parts.push("Disconnecting…");
-        else if (network.connected)
-            parts.push("Connected");
-        if (settingsOpen)
-            parts.push("Settings open");
-        return parts.join(" · ");
+    function networkSectionTitle(index) {
+        if (index < 0 || index >= networks.length)
+            return "";
+        var known = knownNetwork(networks[index].name) !== null;
+        if (index > 0 && (knownNetwork(networks[index - 1].name) !== null) === known)
+            return "";
+        return known ? "KNOWN NETWORKS" : "OTHER NETWORKS";
     }
 
     function beginNetworkTransition(network, state) {
@@ -88,9 +93,13 @@ BarPopup {
         if (networkTransitionState === "")
             return;
 
-        var finished = networkTransitionState === "connecting" ? stationState === "connected" && currentSsid === transitionNetworkName : stationState === "disconnected" || stationState === "unavailable" || (stationState === "connected" && currentSsid !== transitionNetworkName);
-        if (finished)
+        var completedConnection = networkTransitionState === "connecting" && stationState === "connected" && currentSsid === transitionNetworkName;
+        var finished = completedConnection || (networkTransitionState === "disconnecting" && (stationState === "disconnected" || stationState === "unavailable" || (stationState === "connected" && currentSsid !== transitionNetworkName)));
+        if (finished) {
             clearNetworkTransition();
+            if (completedConnection)
+                knownRefreshTimer.restart();
+        }
     }
 
     function headerIcon() {
@@ -100,19 +109,25 @@ BarPopup {
     }
 
     function headerTitle() {
-        if (status.lanConnected)
-            return "Network - Wired Connection";
+        if (status.lanConnected) {
+            var detail = "";
+            if (status.lanSpeedMbps >= 1000)
+                detail = (status.lanSpeedMbps / 1000).toFixed(status.lanSpeedMbps % 1000 === 0 ? 0 : 1) + "gbit";
+            else if (status.lanSpeedMbps > 0)
+                detail = status.lanSpeedMbps + "mbit";
+            return detail ? "Ethernet (" + detail + ")" : "Ethernet";
+        }
         if (stationState === "connected")
-            return "Network - " + (currentSsid || "Wi-Fi");
-        return "Network";
+            return currentSsid || "Wi-Fi";
+        return interfaceName || "No connection";
     }
 
     function headerSubtitle() {
         if (status.lanConnected || stationState === "connected")
-            return "Connected";
+            return connectionPhrases[connectionPhraseIndex % connectionPhrases.length];
         if (status.lanAvailable || interfaceName)
-            return "Disconnected";
-        return "Unavailable";
+            return "Not connected";
+        return "No connection";
     }
 
     function lanDetail() {
@@ -127,6 +142,65 @@ BarPopup {
         if (status.lanSpeedMbps > 0)
             parts.push(status.lanSpeedMbps >= 1000 ? (status.lanSpeedMbps / 1000) + " Gbit/s" : status.lanSpeedMbps + " Mbit/s");
         return parts.join(" · ");
+    }
+
+    function resetThroughput() {
+        throughputInterface = "";
+        previousRxBytes = 0;
+        previousTxBytes = 0;
+        previousSampleTime = 0;
+        downloadRate = 0;
+        uploadRate = 0;
+        throughputReady = false;
+    }
+
+    function parseThroughput(output) {
+        var fields = String(output || "").trim().split("\t");
+        if (fields.length < 3 || !fields[0]) {
+            resetThroughput();
+            return;
+        }
+
+        var iface = fields[0];
+        var rxBytes = Number(fields[1]);
+        var txBytes = Number(fields[2]);
+        if (!isFinite(rxBytes) || !isFinite(txBytes)) {
+            resetThroughput();
+            return;
+        }
+
+        var now = Date.now() / 1000;
+        if (iface !== throughputInterface || previousSampleTime === 0 || rxBytes < previousRxBytes || txBytes < previousTxBytes) {
+            throughputInterface = iface;
+            previousRxBytes = rxBytes;
+            previousTxBytes = txBytes;
+            previousSampleTime = now;
+            downloadRate = 0;
+            uploadRate = 0;
+            throughputReady = false;
+            return;
+        }
+
+        var elapsed = now - previousSampleTime;
+        if (elapsed > 0) {
+            downloadRate = Math.max(0, (rxBytes - previousRxBytes) / elapsed);
+            uploadRate = Math.max(0, (txBytes - previousTxBytes) / elapsed);
+            throughputReady = true;
+        }
+        previousRxBytes = rxBytes;
+        previousTxBytes = txBytes;
+        previousSampleTime = now;
+    }
+
+    function formatRate(bytesPerSecond) {
+        var value = Math.max(0, Number(bytesPerSecond) || 0);
+        if (value < 1024)
+            return Math.round(value) + " B/s";
+        if (value < 1024 * 1024)
+            return (value / 1024).toFixed(1) + " KB/s";
+        if (value < 1024 * 1024 * 1024)
+            return (value / (1024 * 1024)).toFixed(1) + " MB/s";
+        return (value / (1024 * 1024 * 1024)).toFixed(2) + " GB/s";
     }
 
     function parseInterface(output) {
@@ -395,6 +469,12 @@ BarPopup {
             return true;
         }
 
+        if (event.key === Qt.Key_R) {
+            root.status.refresh();
+            root.refresh();
+            return true;
+        }
+
         if (event.key !== Qt.Key_C)
             return false;
 
@@ -407,8 +487,11 @@ BarPopup {
     }
     onOpenedChanged: {
         if (opened) {
+            resetThroughput();
+            connectionPhraseIndex = 0;
             refresh();
         } else {
+            resetThroughput();
             passwordRequested = false;
             passwordInput.text = "";
             pendingNetwork = null;
@@ -441,6 +524,16 @@ BarPopup {
                 stationProcess.command = ["iwctl", "station", root.interfaceName, "show"];
                 stationProcess.running = true;
             }
+        }
+    }
+
+    Process {
+        id: throughputProcess
+
+        command: ["bash", "-lc", "iface=$(ip -4 route show default 2>/dev/null | awk 'NR == 1 { for (i = 1; i <= NF; i++) if ($i == \"dev\") { print $(i + 1); exit } }'); " + "[ -n \"$iface\" ] || iface=$(ip -6 route show default 2>/dev/null | awk 'NR == 1 { for (i = 1; i <= NF; i++) if ($i == \"dev\") { print $(i + 1); exit } }'); " + "[ -n \"$iface\" ] || exit 0; " + "rx=$(cat \"/sys/class/net/$iface/statistics/rx_bytes\" 2>/dev/null) || exit 0; " + "tx=$(cat \"/sys/class/net/$iface/statistics/tx_bytes\" 2>/dev/null) || exit 0; " + "printf '%s\\t%s\\t%s\\n' \"$iface\" \"$rx\" \"$tx\""]
+
+        stdout: StdioCollector {
+            onStreamFinished: root.parseThroughput(text)
         }
     }
 
@@ -479,6 +572,8 @@ BarPopup {
         onExited: function (exitCode) {
             if (exitCode === 0) {
                 root.pendingNetwork = null;
+                refreshTimer.restart();
+                knownRefreshTimer.restart();
                 return;
             }
 
@@ -565,6 +660,7 @@ BarPopup {
                 if (root.knownActionKind === "forget") {
                     root.removeKnownNetwork(root.knownActionName);
                     root.closeKnownConfiguration();
+                    refreshTimer.restart();
                 } else if (root.knownActionKind === "autoconnect") {
                     var network = root.knownNetwork(root.knownActionName);
                     if (network)
@@ -605,6 +701,24 @@ BarPopup {
             networkProcess.command = ["iwctl", "station", root.interfaceName, "get-networks", "rssi-dbms"];
             networkProcess.running = true;
         }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.opened
+        triggeredOnStart: true
+        onTriggered: {
+            if (!throughputProcess.running)
+                throughputProcess.running = true;
+        }
+    }
+
+    Timer {
+        interval: 2800
+        repeat: true
+        running: root.opened && (root.status.lanConnected || root.stationState === "connected")
+        onTriggered: root.connectionPhraseIndex = (root.connectionPhraseIndex + 1) % root.connectionPhrases.length
     }
 
     Timer {
@@ -649,7 +763,7 @@ BarPopup {
 
     Column {
         anchors.fill: parent
-        spacing: 10
+        spacing: Theme.popupSpacing
 
         PopupHeader {
             width: parent.width
@@ -657,75 +771,60 @@ BarPopup {
             title: root.headerTitle()
             subtitle: root.headerSubtitle()
             accent: Theme.sky
+            separatorVisible: false
         }
 
-        PopupButton {
-            text: "Refresh"
-            icon: "󰑓"
-            onClicked: {
-                root.status.refresh();
-                root.refresh();
-            }
-        }
-
-        PopupSection {
+        Grid {
             width: parent.width
-            height: 22
-            text: "WIRED"
-            verticalAlignment: Text.AlignVCenter
-        }
-
-        Rectangle {
-            width: parent.width
-            height: 58
-            radius: Theme.radius
-            color: "transparent"
+            height: 18
+            columns: 4
 
             Text {
-                anchors.left: parent.left
-                anchors.leftMargin: 14
-                anchors.verticalCenter: parent.verticalCenter
-                width: 26
-                text: root.status.lanConnected ? "󰈀" : (root.status.lanAvailable ? "󰈂" : "󰌙")
-                color: root.status.lanConnected ? Theme.sky : Theme.overlay0
+                width: parent.width * 0.20
+                height: parent.height
+                text: "Receiving"
+                color: Theme.subtext0
                 font.family: Theme.fontFamily
-                font.pixelSize: 19
-                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: 10
+                verticalAlignment: Text.AlignVCenter
             }
 
-            Column {
-                anchors.left: parent.left
-                anchors.leftMargin: 52
-                anchors.right: parent.right
-                anchors.rightMargin: 14
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
+            Text {
+                width: parent.width * 0.30
+                height: parent.height
+                text: root.throughputReady ? root.formatRate(root.downloadRate) : "--"
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                font.bold: true
+                verticalAlignment: Text.AlignVCenter
+            }
 
-                Text {
-                    width: parent.width
-                    text: root.status.lanConnected ? "LAN connected" : (root.status.lanAvailable ? "LAN disconnected" : "LAN unavailable")
-                    color: root.status.lanConnected ? Theme.sky : Theme.text
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 14
-                    elide: Text.ElideRight
-                }
+            Text {
+                width: parent.width * 0.18
+                height: parent.height
+                text: "Sending"
+                color: Theme.subtext0
+                font.family: Theme.fontFamily
+                font.pixelSize: 10
+                verticalAlignment: Text.AlignVCenter
+            }
 
-                Text {
-                    width: parent.width
-                    text: root.lanDetail()
-                    color: Theme.subtext0
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
-                }
+            Text {
+                width: parent.width * 0.32
+                height: parent.height
+                text: root.throughputReady ? root.formatRate(root.uploadRate) : "--"
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                font.bold: true
+                horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignVCenter
             }
         }
 
-        PopupSection {
+        PopupSeparator {
             width: parent.width
-            height: 22
-            text: "AVAILABLE NETWORKS"
-            verticalAlignment: Text.AlignVCenter
         }
 
         Rectangle {
@@ -777,7 +876,7 @@ BarPopup {
             Text {
                 anchors.fill: passwordInput
                 visible: passwordInput.text === ""
-                text: root.pendingNetwork ? "Password for " + root.pendingNetwork.name : "Password"
+                text: "Passphrase"
                 color: Theme.overlay0
                 font: passwordInput.font
                 verticalAlignment: Text.AlignVCenter
@@ -814,17 +913,13 @@ BarPopup {
                 id: networkList
 
                 width: parent.width
-                spacing: 3
+                spacing: 4
 
-                Text {
+                PopupSection {
                     width: parent.width
-                    height: 52
+                    height: visible ? 22 : 0
                     visible: root.networks.length === 0 && root.errorMessage === ""
-                    text: "Scanning for Wi-Fi networks…"
-                    color: Theme.overlay0
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    horizontalAlignment: Text.AlignHCenter
+                    text: "SCANNING WI-FI…"
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -835,6 +930,7 @@ BarPopup {
                         id: availableEntry
 
                         required property var modelData
+                        required property int index
                         readonly property var savedNetwork: root.knownNetwork(modelData.name)
                         readonly property bool configurationExpanded: !!savedNetwork && root.configuredKnownNetwork === modelData.name
                         readonly property string transition: root.transitionNetworkName === modelData.name ? root.networkTransitionState : ""
@@ -848,27 +944,39 @@ BarPopup {
                             width: parent.width
                             spacing: 4
 
-                            ActionRow {
-                                id: availableRow
-
+                            Column {
                                 width: parent.width
-                                icon: root.signalIcon(availableEntry.modelData.signal)
-                                label: availableEntry.modelData.name
-                                detail: root.networkDetail(availableEntry.modelData, !!availableEntry.savedNetwork, availableEntry.transition, availableEntry.configurationExpanded)
-                                selected: availableEntry.modelData.connected
-                                accent: Theme.sky
-                                enabled: root.networkTransitionState === "" && !connectProcess.running && !disconnectProcess.running && !knownActionProcess.running
-                                opacity: availableEntry.transition !== "" || knownActionProcess.running ? 0.55 : 1
+                                spacing: 10
 
-                                function keyboardConfigure() {
-                                    if (availableEntry.savedNetwork)
-                                        root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                PopupSection {
+                                    width: parent.width
+                                    height: visible ? 22 : 0
+                                    visible: root.networkSectionTitle(availableEntry.index) !== ""
+                                    text: root.networkSectionTitle(availableEntry.index)
+                                    verticalAlignment: Text.AlignVCenter
                                 }
 
-                                onActivated: root.connectNetwork(availableEntry.modelData)
-                                onSecondaryActivated: {
-                                    if (availableEntry.savedNetwork)
-                                        root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                ActionRow {
+                                    id: availableRow
+
+                                    width: parent.width
+                                    icon: root.signalIcon(availableEntry.modelData.signal)
+                                    label: availableEntry.modelData.name
+                                    selected: availableEntry.modelData.connected
+                                    accent: Theme.sky
+                                    enabled: root.networkTransitionState === "" && !connectProcess.running && !disconnectProcess.running && !knownActionProcess.running
+                                    opacity: availableEntry.transition !== "" || knownActionProcess.running ? 0.55 : 1
+
+                                    function keyboardConfigure() {
+                                        if (availableEntry.savedNetwork)
+                                            root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                    }
+
+                                    onActivated: root.connectNetwork(availableEntry.modelData)
+                                    onSecondaryActivated: {
+                                        if (availableEntry.savedNetwork)
+                                            root.toggleKnownConfiguration(availableEntry.savedNetwork);
+                                    }
                                 }
                             }
 
@@ -889,7 +997,6 @@ BarPopup {
                                         width: parent.width
                                         icon: availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnect ? "󰄬" : "󰝦"
                                         label: "Auto-connect"
-                                        detail: availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown ? (availableEntry.savedNetwork.autoConnect ? "Enabled" : "Disabled") : "Loading…"
                                         selected: !!availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown && availableEntry.savedNetwork.autoConnect
                                         accent: Theme.sky
                                         enabled: !!availableEntry.savedNetwork && availableEntry.savedNetwork.autoConnectKnown && !knownListProcess.running && !knownDetailsProcess.running && !knownActionProcess.running
@@ -901,7 +1008,6 @@ BarPopup {
                                         width: parent.width
                                         icon: "󰆴"
                                         label: "Forget network"
-                                        detail: "Remove the saved network"
                                         accented: true
                                         accent: Theme.red
                                         enabled: !!availableEntry.savedNetwork && !knownListProcess.running && !knownDetailsProcess.running && !knownActionProcess.running

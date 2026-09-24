@@ -41,6 +41,28 @@ BarPopup {
         configuredProfileDevice = -1;
     }
 
+    function outputVolumeName() {
+        if (audio.outputMuted)
+            return "Muted";
+
+        var percent = Math.round(audio.outputVolume * 100);
+        if (percent === 0)
+            return "Silenced";
+        if (percent >= 100)
+            return "Concert hall";
+        if (percent >= 85)
+            return "Party mode";
+        if (percent >= 70)
+            return "Cranked up";
+        if (percent >= 50)
+            return "Steady groove";
+        if (percent >= 30)
+            return "Easy listening";
+        if (percent >= 15)
+            return "Murmur";
+        return "Whisper";
+    }
+
     popupWidth: 390
     popupHeight: 540
     customKeyHandler: function (event) {
@@ -86,7 +108,6 @@ BarPopup {
                 width: parent.width
                 icon: node === (output ? root.audio.sink : root.audio.source) ? (output ? "󰓃" : "󰍬") : (output ? "󰋋" : "󰍮")
                 label: root.audio.labelFor(node)
-                detail: (node === (output ? root.audio.sink : root.audio.source) ? (output ? "Current output" : "Current input") : (output ? "Switch output" : "Switch input")) + (configurationExpanded ? " · Settings open" : "")
                 selected: node === (output ? root.audio.sink : root.audio.source)
                 accent: output ? Theme.red : Theme.yellow
 
@@ -126,39 +147,21 @@ BarPopup {
 
     Column {
         anchors.fill: parent
-        spacing: 10
+        spacing: Theme.popupSpacing
 
         PopupHeader {
             width: parent.width
             icon: root.audio.outputMuted ? "󰝟" : "󰕾"
             title: "Audio"
-            subtitle: root.audio.labelFor(root.audio.sink)
+            subtitle: root.outputVolumeName()
             accent: Theme.red
-        }
-
-        PopupSlider {
-            width: parent.width
-            icon: root.audio.outputMuted ? "󰝟" : "󰕾"
-            label: "Output"
-            value: root.audio.outputMuted ? 0 : root.audio.outputVolume
-            accent: Theme.red
-            onMoved: function (value) {
-                root.audio.setNodeVolume(root.audio.sink, value);
+            trailingControl: Component {
+                PopupToggle {
+                    checked: !root.audio.outputMuted
+                    accent: Theme.red
+                    onToggled: root.audio.toggleOutput()
+                }
             }
-            onIconClicked: root.audio.toggleOutput()
-        }
-
-        PopupSlider {
-            width: parent.width
-            visible: !!root.audio.source
-            icon: root.audio.inputMuted ? "󰍭" : "󰍬"
-            label: "Microphone"
-            value: root.audio.inputMuted ? 0 : root.audio.inputVolume
-            accent: Theme.yellow
-            onMoved: function (value) {
-                root.audio.setNodeVolume(root.audio.source, value);
-            }
-            onIconClicked: root.audio.toggleInput()
         }
 
         WheelScrollView {
@@ -175,9 +178,20 @@ BarPopup {
 
                 PopupSection {
                     width: parent.width
-                    height: 24
-                    text: "OUTPUT DEVICES"
+                    height: 22
+                    text: "OUTPUT"
                     verticalAlignment: Text.AlignVCenter
+                }
+
+                PopupSlider {
+                    width: parent.width
+                    icon: root.audio.outputMuted ? "󰝟" : "󰕾"
+                    value: root.audio.outputMuted ? 0 : root.audio.outputVolume
+                    accent: Theme.red
+                    onMoved: function (value) {
+                        root.audio.setNodeVolume(root.audio.sink, value);
+                    }
+                    onIconClicked: root.audio.toggleOutput()
                 }
 
                 Repeater {
@@ -192,12 +206,30 @@ BarPopup {
                     }
                 }
 
+                PopupSeparator {
+                    width: parent.width
+                    visible: root.audio.sources.length > 0
+                    verticalPadding: 4
+                }
+
                 PopupSection {
                     width: parent.width
-                    height: 24
+                    height: visible ? 22 : 0
                     visible: root.audio.sources.length > 0
-                    text: "INPUT DEVICES"
+                    text: "INPUT"
                     verticalAlignment: Text.AlignVCenter
+                }
+
+                PopupSlider {
+                    width: parent.width
+                    visible: !!root.audio.source
+                    icon: root.audio.inputMuted ? "󰍭" : "󰍬"
+                    value: root.audio.inputMuted ? 0 : root.audio.inputVolume
+                    accent: Theme.yellow
+                    onMoved: function (value) {
+                        root.audio.setNodeVolume(root.audio.source, value);
+                    }
+                    onIconClicked: root.audio.toggleInput()
                 }
 
                 Repeater {
@@ -212,11 +244,17 @@ BarPopup {
                     }
                 }
 
+                PopupSeparator {
+                    width: parent.width
+                    visible: root.audio.streams.length > 0
+                    verticalPadding: 4
+                }
+
                 PopupSection {
                     width: parent.width
-                    height: 24
+                    height: visible ? 22 : 0
                     visible: root.audio.streams.length > 0
-                    text: "APPLICATIONS"
+                    text: "SOURCES"
                     verticalAlignment: Text.AlignVCenter
                 }
 

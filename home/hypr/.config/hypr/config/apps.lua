@@ -9,7 +9,7 @@ local apps = {
     menu = "shell launcher root",
     powerMenu = "shell launcher power",
 
-    editor = "MESA_VK_WSI_PRESENT_MODE=mailbox zeditor",
+    editor = "zeditor",
     browser = "zen-browser",
     messenger = "discord",
     passwordManager = "enpass",

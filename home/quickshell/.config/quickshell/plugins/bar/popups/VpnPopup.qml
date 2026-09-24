@@ -13,6 +13,22 @@ BarPopup {
     property string selectedCountryCode: ""
     property string selectedCityCode: ""
     property string errorMessage: ""
+    property int phraseIndex: 0
+    readonly property var activePhrases: ["Encrypting connections", "Sending secrets", "Guarding wires", "Braiding packets", "Polishing tunnels", "Hiding routes", "Sealing ports", "Shuffling keys"]
+
+    function heroTitle() {
+        if (!status.vpnConnected || !status.vpnCountry)
+            return "Mullvad VPN";
+        return (status.vpnCity ? status.vpnCity + ", " : "") + status.vpnCountry;
+    }
+
+    function heroStatus() {
+        if (status.vpnState === "Connecting")
+            return "Connecting";
+        if (status.vpnConnected)
+            return activePhrases[phraseIndex % activePhrases.length];
+        return "Disconnected";
+    }
 
     function parseLocations(output) {
         var countries = [];
@@ -139,6 +155,7 @@ BarPopup {
     popupHeight: 530
     onOpenedChanged: {
         if (opened) {
+            phraseIndex = 0;
             status.refresh();
             if (locations.length === 0)
                 refreshLocations();
@@ -152,6 +169,13 @@ BarPopup {
 
         interval: 900
         onTriggered: root.status.refresh()
+    }
+
+    Timer {
+        interval: 2800
+        repeat: true
+        running: root.opened && root.status.vpnState === "Connected"
+        onTriggered: root.phraseIndex = (root.phraseIndex + 1) % root.activePhrases.length
     }
 
     Connections {
@@ -183,33 +207,20 @@ BarPopup {
 
     Column {
         anchors.fill: parent
-        spacing: 12
+        spacing: Theme.popupSpacing
 
         PopupHeader {
             width: parent.width
             icon: root.status.vpnConnected ? "󰒃" : "󰌙"
-            title: "Mullvad VPN"
-            subtitle: root.status.vpnCountry ? root.status.vpnState + " · " + root.status.vpnCountry + (root.status.vpnCity ? ", " + root.status.vpnCity : "") : root.status.vpnState
+            title: root.heroTitle()
+            subtitle: root.heroStatus()
             accent: Theme.mauve
-        }
-
-        Row {
-            width: parent.width
-            height: 36
-            spacing: 8
-
-            PopupButton {
-                text: root.status.vpnConnected ? "Disconnect" : "Connect"
-                icon: root.status.vpnConnected ? "󰌙" : "󰒃"
-                highlighted: true
-                accent: Theme.mauve
-                onClicked: root.status.toggleVpn()
-            }
-
-            PopupButton {
-                text: "Refresh"
-                icon: "󰑓"
-                onClicked: root.refreshLocations()
+            trailingControl: Component {
+                PopupToggle {
+                    checked: root.status.vpnConnected
+                    accent: Theme.mauve
+                    onToggled: root.status.toggleVpn()
+                }
             }
         }
 
@@ -232,7 +243,7 @@ BarPopup {
                 id: locationList
 
                 width: parent.width
-                spacing: 3
+                spacing: 4
 
                 Text {
                     width: parent.width
@@ -269,7 +280,7 @@ BarPopup {
                         }
 
                         width: locationList.width
-                        spacing: root.countryExpanded(modelData.code) ? 3 : 0
+                        spacing: root.countryExpanded(modelData.code) ? 4 : 0
 
                         ActionRow {
                             id: countryRow
@@ -291,7 +302,7 @@ BarPopup {
                             height: root.countryExpanded(countryGroup.modelData.code) ? implicitHeight : 0
                             visible: height > 0
                             accent: Theme.mauve
-                            spacing: 3
+                            spacing: 4
 
                             Repeater {
                                 id: cityRepeater

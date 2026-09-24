@@ -16,6 +16,7 @@ Item {
     property string query: ""
     property int selectedIndex: 0
     property bool keyboardSelectionActive: false
+    property bool pointerSelectionBlocked: false
     property var dataRows: []
     property var modeHistory: []
     property var selectedPackages: []
@@ -230,6 +231,8 @@ Item {
             selectedIndex = 0;
             return;
         }
+        pointerSelectionBlocked = true;
+        pointerSelectionRelease.restart();
         selectedIndex = Util.clamp(selectedIndex + step, 0, visibleRows.length - 1);
     }
 
@@ -484,6 +487,13 @@ Item {
             selectedIndex = Math.max(0, visibleRows.length - 1);
     }
 
+    Timer {
+        id: pointerSelectionRelease
+
+        interval: 80
+        onTriggered: root.pointerSelectionBlocked = false
+    }
+
     Process {
         id: dataProcess
 
@@ -626,7 +636,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 20
                                 text: ""
-                                color: input.activeFocus ? Theme.mauve : Theme.overlay0
+                                color: Theme.subtext0
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 17
                                 horizontalAlignment: Text.AlignHCenter
@@ -648,7 +658,7 @@ Item {
                                 cursorDelegate: Rectangle {
                                     width: 2
                                     radius: 1
-                                    color: Theme.mauve
+                                    color: Theme.subtext0
                                     opacity: 0.8
                                     visible: input.activeFocus && input.selectionStart === input.selectionEnd
                                 }
@@ -670,15 +680,11 @@ Item {
                                         root.keyboardSelectionActive = true;
                                         root.moveSelection(-1);
                                         event.accepted = true;
-                                    } else if (event.key === Qt.Key_Tab && root.packageMode && root.visibleRows.length > 0) {
+                                    } else if ((event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) && root.packageMode && root.visibleRows.length > 0) {
+                                        var backwards = event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier);
                                         root.keyboardSelectionActive = true;
                                         root.togglePackageSelection(root.visibleRows[root.selectedIndex]);
-                                        root.moveSelection(1);
-                                        event.accepted = true;
-                                    } else if (event.key === Qt.Key_Backtab && root.packageMode && root.visibleRows.length > 0) {
-                                        root.keyboardSelectionActive = true;
-                                        root.togglePackageSelection(root.visibleRows[root.selectedIndex]);
-                                        root.moveSelection(-1);
+                                        root.moveSelection(backwards ? -1 : 1);
                                         event.accepted = true;
                                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                         root.activateSelected();
@@ -746,12 +752,22 @@ Item {
                                     iconSource: modelData.iconSource || ""
                                     label: modelData.label || ""
                                     detail: modelData.detail || ""
+                                    singleLineHeight: 46
+                                    detailedHeight: 58
+                                    horizontalPadding: 14
+                                    contentSpacing: 12
+                                    iconImageSize: 26
+                                    iconSourceSize: 52
+                                    iconFontSize: 19
+                                    labelFontSize: 15
+                                    detailFontSize: 11
                                     current: index === root.selectedIndex
-                                    selected: !root.packageMode && index === root.selectedIndex
                                     accented: packageMarked
                                     focusOnClick: false
                                     mouseHighlightEnabled: !root.keyboardSelectionActive || index === root.selectedIndex
                                     onPointerInteraction: {
+                                        if (root.pointerSelectionBlocked)
+                                            return;
                                         root.keyboardSelectionActive = false;
                                         root.selectedIndex = index;
                                     }

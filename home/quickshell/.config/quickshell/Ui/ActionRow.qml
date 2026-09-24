@@ -16,6 +16,16 @@ Rectangle {
     property color accent: Theme.mauve
     property bool keyboardFocusVisible: false
     property bool mouseHighlightEnabled: true
+    property real singleLineHeight: 38
+    property real detailedHeight: 50
+    property real horizontalPadding: 10
+    property real contentSpacing: 10
+    property real iconSlotWidth: 26
+    property real iconImageSize: 22
+    property real iconSourceSize: 44
+    property real iconFontSize: 16
+    property real labelFontSize: 12
+    property real detailFontSize: 10
     readonly property bool keyboardNavigable: true
     readonly property bool navigationFocusVisible: keyboardFocusVisible
 
@@ -24,7 +34,7 @@ Rectangle {
     signal scrollRequested(real delta)
     signal pointerInteraction()
 
-    implicitHeight: detail ? 58 : 46
+    implicitHeight: detail ? detailedHeight : singleLineHeight
     activeFocusOnTab: false
     radius: Theme.radius
     color: current || (mouse.containsMouse && mouseHighlightEnabled) || navigationFocusVisible ? Theme.surface0 : "transparent"
@@ -55,23 +65,25 @@ Rectangle {
 
     Row {
         anchors.fill: parent
-        anchors.leftMargin: 14
-        anchors.rightMargin: 14
-        spacing: root.reserveIconSpace ? 12 : 0
+        anchors.leftMargin: root.horizontalPadding
+        anchors.rightMargin: root.horizontalPadding
+        spacing: root.reserveIconSpace ? root.contentSpacing : 0
 
         Item {
-            width: root.reserveIconSpace ? 26 : 0
+            id: iconSlot
+
+            width: root.reserveIconSpace ? root.iconSlotWidth : 0
             height: parent.height
             visible: root.reserveIconSpace
 
             Image {
                 anchors.centerIn: parent
-                width: 26
-                height: 26
+                width: root.iconImageSize
+                height: root.iconImageSize
                 visible: root.iconSource.toString() !== ""
                 source: root.iconSource
-                sourceSize.width: 52
-                sourceSize.height: 52
+                sourceSize.width: root.iconSourceSize
+                sourceSize.height: root.iconSourceSize
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: true
@@ -83,7 +95,7 @@ Rectangle {
                 text: root.icon
                 color: root.selected || root.accented ? root.accent : Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 19
+                font.pixelSize: root.iconFontSize
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
@@ -91,7 +103,7 @@ Rectangle {
         }
 
         Column {
-            width: parent.width - (root.reserveIconSpace ? 38 : 0)
+            width: parent.width - iconSlot.width - parent.spacing
             anchors.verticalCenter: parent.verticalCenter
             spacing: 2
 
@@ -100,7 +112,7 @@ Rectangle {
                 text: root.label
                 color: root.selected || root.accented ? root.accent : Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 15
+                font.pixelSize: root.labelFontSize
                 elide: Text.ElideRight
             }
 
@@ -110,7 +122,7 @@ Rectangle {
                 text: root.detail
                 color: Theme.subtext0
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: root.detailFontSize
                 elide: Text.ElideRight
             }
 

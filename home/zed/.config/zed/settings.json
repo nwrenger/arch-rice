@@ -25,16 +25,15 @@
     "codex-acp": {
       "favorite_config_option_values": {
         "mode": [
-          "agent"
-        ],
-        "model": [
-          "gpt-5.6-sol"
+          "agent-full-access"
         ],
         "reasoning_effort": [
           "high"
         ]
       },
       "default_config_options": {
+        "model": "gpt-5.6-sol",
+        "mode": "agent-full-access",
         "reasoning_effort": "high"
       },
       "type": "registry"

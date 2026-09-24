@@ -27,6 +27,7 @@ Item {
         id: contentColumn
 
         x: 14
+        y: 4
         width: parent.width - x
         spacing: 4
     }

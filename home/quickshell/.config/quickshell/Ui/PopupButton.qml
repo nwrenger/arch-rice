@@ -16,10 +16,10 @@ Rectangle {
     signal clicked()
 
     implicitWidth: label.implicitWidth + 28
-    implicitHeight: 34
+    implicitHeight: 32
     activeFocusOnTab: false
     radius: Theme.radius
-    color: (mouse.containsMouse && mouseHighlightEnabled) || navigationFocusVisible ? Theme.surface1 : Theme.surface0
+    color: root.highlighted ? Theme.surface0 : ((mouse.containsMouse && mouseHighlightEnabled) || navigationFocusVisible ? Theme.surface1 : "transparent")
     border.width: navigationFocusVisible ? 1 : 0
     border.color: accent
 
@@ -42,7 +42,7 @@ Rectangle {
         text: (root.icon ? root.icon + "  " : "") + root.text
         color: root.highlighted ? root.accent : Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: 11
     }
 
     MouseArea {

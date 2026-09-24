@@ -247,7 +247,7 @@ PopupWindow {
             id: contentHolder
 
             anchors.fill: parent
-            anchors.margins: 16
+            anchors.margins: Theme.popupPadding
             focus: true
             Keys.onPressed: function(event) { root.handleKey(event); }
         }

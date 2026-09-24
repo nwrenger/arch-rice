@@ -17,7 +17,7 @@ Item {
     signal iconClicked()
     signal moved(real value)
 
-    implicitHeight: 52
+    implicitHeight: 50
     activeFocusOnTab: false
 
     function keyboardActivate() {
@@ -95,7 +95,9 @@ Item {
         text: root.label
         color: Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 11
+        font.pixelSize: 10
+        font.bold: true
+        font.letterSpacing: 1.0
     }
 
     Text {
@@ -105,7 +107,7 @@ Item {
         text: Math.round(root.value * 100) + "%"
         color: Theme.subtext0
         font.family: Theme.fontFamily
-        font.pixelSize: 11
+        font.pixelSize: 10
     }
 
     Slider {

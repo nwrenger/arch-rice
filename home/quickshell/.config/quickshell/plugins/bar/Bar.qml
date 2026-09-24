@@ -19,6 +19,8 @@ Item {
     property string activePopup: ""
     property string activePopupScreen: ""
     readonly property var bluetoothAdapter: Bluetooth.defaultAdapter
+    property bool bluetoothDiscoveryOwned: false
+    property bool bluetoothDiscoveryStartPending: false
     readonly property int bluetoothConnections: {
         var count = 0;
         var values = Bluetooth.devices ? Bluetooth.devices.values : [];
@@ -27,6 +29,22 @@ Item {
                 count++;
             }
         return count;
+    }
+
+    onActivePopupChanged: {
+        bluetoothDiscoveryStop.attempts = 0;
+        if (activePopup === "bluetooth") {
+            if (bluetoothAdapter && bluetoothAdapter.discovering)
+                bluetoothDiscoveryOwned = true;
+        } else {
+            bluetoothDiscoveryStartPending = false;
+            bluetoothDiscoveryRetry.stop();
+        }
+    }
+
+    Component.onCompleted: {
+        if (bluetoothAdapter && bluetoothAdapter.discovering)
+            bluetoothDiscoveryOwned = true;
     }
 
     function workspace(id) {
@@ -120,6 +138,67 @@ Item {
         repeat: true
         running: true
         onTriggered: root.now = new Date()
+    }
+
+    Timer {
+        id: bluetoothDiscoveryStart
+
+        interval: 1000
+        triggeredOnStart: true
+        running: root.activePopup === "bluetooth" && root.bluetoothAdapter && root.bluetoothAdapter.enabled && !root.bluetoothAdapter.discovering && !root.bluetoothDiscoveryStartPending
+        onTriggered: {
+            if (root.activePopup === "bluetooth" && root.bluetoothAdapter && root.bluetoothAdapter.enabled && !root.bluetoothAdapter.discovering) {
+                root.bluetoothDiscoveryOwned = true;
+                root.bluetoothDiscoveryStartPending = true;
+                root.bluetoothAdapter.discovering = true;
+                bluetoothDiscoveryRetry.restart();
+            }
+        }
+    }
+
+    Timer {
+        id: bluetoothDiscoveryRetry
+
+        interval: 5000
+        onTriggered: root.bluetoothDiscoveryStartPending = false
+    }
+
+    Timer {
+        id: bluetoothDiscoveryStop
+
+        property int attempts: 0
+
+        interval: 1000
+        repeat: true
+        running: root.activePopup !== "bluetooth" && root.bluetoothDiscoveryOwned && root.bluetoothAdapter && root.bluetoothAdapter.discovering && attempts < 4
+        onTriggered: {
+            attempts += 1;
+            root.bluetoothAdapter.discovering = false;
+            if (attempts >= 4)
+                root.bluetoothDiscoveryOwned = false;
+        }
+    }
+
+    Connections {
+        target: root.bluetoothAdapter
+
+        function onDiscoveringChanged() {
+            if (root.bluetoothAdapter.discovering) {
+                root.bluetoothDiscoveryStartPending = false;
+                root.bluetoothDiscoveryOwned = true;
+                bluetoothDiscoveryRetry.stop();
+            } else {
+                root.bluetoothDiscoveryStartPending = false;
+                root.bluetoothDiscoveryOwned = false;
+                bluetoothDiscoveryStop.attempts = 0;
+            }
+        }
+
+        function onEnabledChanged() {
+            root.bluetoothDiscoveryStartPending = false;
+            if (!root.bluetoothAdapter.enabled)
+                root.bluetoothDiscoveryOwned = false;
+        }
     }
 
     Variants {

@@ -48,14 +48,15 @@ BarPopup {
 
     Column {
         anchors.fill: parent
-        spacing: 12
+        spacing: Theme.popupSpacing
 
         PopupHeader {
             width: parent.width
             icon: "󰃭"
-            title: Qt.formatDate(root.now, "dddd, d MMMM")
-            subtitle: Qt.formatDate(root.now, "d.MM.yyyy")
+            title: Qt.formatDate(root.now, "MMMM d")
             accent: Theme.blue
+            clickable: root.viewedMonth.getMonth() !== root.now.getMonth() || root.viewedMonth.getFullYear() !== root.now.getFullYear()
+            onClicked: root.resetToday()
         }
 
         Row {
@@ -64,25 +65,25 @@ BarPopup {
 
             PopupButton {
                 width: 38
-                text: "‹"
+                text: "󰅁"
                 onClicked: root.changeMonth(-1)
             }
 
             Text {
                 width: parent.width - 76
                 height: parent.height
-                text: Qt.formatDate(root.viewedMonth, "MMMM yyyy")
+                text: Qt.formatDate(root.viewedMonth, "MMMM yyyy").toUpperCase()
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 14
-                font.bold: true
+                font.pixelSize: 12
+                font.letterSpacing: 1
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
 
             PopupButton {
                 width: 38
-                text: "›"
+                text: "󰅂"
                 onClicked: root.changeMonth(1)
             }
         }
@@ -140,13 +141,5 @@ BarPopup {
             }
         }
 
-        PopupButton {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "Today"
-            icon: "󰃭"
-            highlighted: root.viewedMonth.getMonth() !== root.now.getMonth() || root.viewedMonth.getFullYear() !== root.now.getFullYear()
-            accent: Theme.blue
-            onClicked: root.resetToday()
-        }
     }
 }

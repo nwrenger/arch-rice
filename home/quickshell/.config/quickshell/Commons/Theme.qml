@@ -25,4 +25,6 @@ QtObject {
     readonly property int barHeight: 32
     readonly property int radius: 9
     readonly property int gap: 10
+    readonly property int popupPadding: 14
+    readonly property int popupSpacing: 12
 }
