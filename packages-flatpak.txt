@@ -1,3 +1,4 @@
 ai.storyteller.artcraft-launcher
+ai.storyteller.filmcraft
 com.heroicgameslauncher.hgl
 net.blockbench.Blockbench

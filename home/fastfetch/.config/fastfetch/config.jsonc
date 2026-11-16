@@ -42,7 +42,10 @@
       "type": "disk",
       "folders": "/",
     },
-    "packages",
+    {
+      "type": "packages",
+      "combined": true,
+    },
     "uptime",
     {
       "type": "colors",
