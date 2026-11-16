@@ -409,14 +409,6 @@ Item {
         if (!id)
             return;
 
-        // Enpass won't launch over the normal way. Therefore, this launches
-        // the binary in its own graphical service.
-        if (id === "enpass") {
-            Quickshell.execDetached(["systemd-run", "--user", "--collect", "--quiet", "--slice=app-graphical.slice", "/opt/enpass/Enpass"]);
-            close();
-            return;
-        }
-
         // gtk-launch resolves the desktop entry while
         // uwsm-app places the application in the graphical application slice.
         Quickshell.execDetached(["uwsm-app", "--", "gtk-launch", id]);

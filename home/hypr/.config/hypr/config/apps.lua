@@ -12,7 +12,7 @@ local apps = {
     editor = "zeditor",
     browser = "zen-browser",
     messenger = "discord",
-    passwordManager = "enpass",
+    passwordManager = "/usr/bin/env XDG_CURRENT_DESKTOP=GNOME /opt/enpass/Enpass",
     mails = "geary",
 
     audio = "shell popup audio",

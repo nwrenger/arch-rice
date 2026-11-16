@@ -9,7 +9,7 @@ QtObject {
 
     function wheelDistance(event) {
         var pixelDistance = event.pixelDelta.y;
-        return pixelDistance !== 0 ? -pixelDistance * 1.5 : -event.angleDelta.y * 0.75;
+        return pixelDistance !== 0 ? -pixelDistance * 3 : -event.angleDelta.y * 1.5;
     }
 
     function shellQuote(value) {

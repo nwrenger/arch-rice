@@ -42,6 +42,7 @@ intel-ucode intel-cpu
 iwd
 jq
 kvantum
+kvantum-qt5
 libpulse
 libqalculate
 libva-nvidia-driver nvidia
@@ -67,6 +68,7 @@ pipewire-jack
 pipewire-pulse
 podman
 prismlauncher
+qt5ct
 qt5-wayland
 qt6-5compat
 qt6ct
@@ -96,6 +98,7 @@ vim
 wev
 wget
 wireless_tools
+wiremix
 wireplumber
 wl-clipboard
 xdg-desktop-portal-gtk
@@ -104,4 +107,5 @@ xdg-utils
 xorg-server
 xorg-xinit
 zed
+zip
 zram-generator
