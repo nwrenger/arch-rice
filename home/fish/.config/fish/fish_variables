@@ -3,4 +3,4 @@
 SETUVAR --export QT_QPA_PLATFORM:xcb
 SETUVAR __fish_initialized:4300
 SETUVAR fish_greeting:\x1d
-SETUVAR fish_user_paths:/home/nils/\x2elocal/bin
+SETUVAR fish_user_paths:/home/nils/\x2ecargo/bin\x1e/home/nils/\x2elocal/bin

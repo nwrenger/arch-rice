@@ -17,14 +17,14 @@ hl.bind(mainMod .. " + P", hl.dsp.exec_cmd(apps.passwordManager))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(apps.mails))
 
 -- System ctl
-hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.audio))
-hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(apps.internet))
-hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(apps.vpn))
-hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(apps.airplay))
-hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd(apps.bluetooth))
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.audio))
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.mic))
+hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.internet))
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e vpn"))
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.bluetooth))
 hl.bind(mainMod .. " + SHIFT + S",
-    hl.dsp.exec_cmd(apps.terminal .. " --title " .. apps.systemMonitor .. " -e " .. apps.systemMonitor))
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("shell wallpaper random"))
+    hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.systemMonitor))
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("random-wallpaper"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("colorpicker"))
 hl.bind("Print", hl.dsp.exec_cmd("take-screenshot"))
 

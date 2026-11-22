@@ -1,0 +1,9 @@
+diff --git a/cli/src/project.rs b/cli/src/project.rs
+--- a/cli/src/project.rs
++++ b/cli/src/project.rs
+@@ -142,3 +142,5 @@
+ amane = {{ path = '{library}' }}
++chrono = \"0.4\"
++zbus = \"5.19\"
+ 
+ [profile.dev]

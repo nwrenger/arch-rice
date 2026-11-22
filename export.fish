@@ -41,8 +41,8 @@ end
 # hypr
 home_cp hypr .config/hypr
 
-# Quickshell desktop
-home_cp quickshell .config/quickshell
+# Amane desktop
+home_cp amane .config/amane
 
 # alacritty
 home_cp alacritty .config/alacritty
@@ -105,6 +105,7 @@ end
 
 sys_cp /etc/locale.conf           etc/locale.conf
 sys_cp /etc/pacman.conf           etc/pacman.conf
+sys_cp /etc/NetworkManager/conf.d/10-network.conf etc/NetworkManager/conf.d/10-network.conf
 sys_cp /etc/default/limine     etc/default/limine
 sys_cp /etc/sddm.conf.d           etc/sddm.conf.d
 

@@ -83,6 +83,7 @@
   },
   "agent": {
     "sandbox_permissions": {
+      "allow_unsandboxed": true,
       "network_hosts": [
         "minecraft.wiki",
         "raw.githubusercontent.com",
@@ -120,9 +121,9 @@
     },
     "default_model": {
       "provider": "openai-subscribed",
-      "model": "gpt-6.1-sol",
+      "model": "gpt-6.2-sol",
       "enable_thinking": true,
-      "effort": "medium"
+      "effort": "high"
     },
     "dock": "right",
   },

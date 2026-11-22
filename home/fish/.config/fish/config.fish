@@ -13,3 +13,6 @@ starship init fish | source
 
 # Local bins
 fish_add_path ~/.local/bin
+
+# Local cargo
+fish_add_path ~/.cargo/bin

@@ -15,18 +15,11 @@ local apps = {
     passwordManager = "/usr/bin/env XDG_CURRENT_DESKTOP=GNOME /opt/enpass/Enpass",
     mails = "geary",
 
-    audio = "shell popup audio",
-    internet = "shell popup network",
-    vpn = "shell popup vpn",
-    airplay = "shell uxplay toggle",
-    bluetooth = "shell popup bluetooth",
+    audio = "wiremix -v output",
+    mic = "wiremix -v input",
+    internet = "wlctl",
+    bluetooth = "bluetui",
     systemMonitor = "btop",
-    packageInstall = "package install",
-    aurInstall = "AUR install",
-    flatpakInstall = "Flatpak install",
-    packageRemove = "package removal",
-    flatpakRemove = "Flatpak removal",
-    systemUpdate = "system update",
 }
 
 return apps

@@ -172,6 +172,8 @@ function parse_pkgs
 end
 
 set pacman_pkgs (parse_pkgs $pacman_file $skip_tags)
+# Arch's native Cargo and rustc come from extra/rust. Rustup also provides cargo.
+set pacman_pkgs (string replace -r '^cargo$' extra/rust -- $pacman_pkgs)
 set aur_pkgs    (parse_pkgs $aur_file    $skip_tags)
 set flatpak_apps (parse_pkgs $flatpak_file)
 
@@ -255,6 +257,45 @@ set limine_template "$HOME/.config/limine.conf.template"
 cp $DOTFILES_DIR/system/boot/limine.conf.template $limine_template
 ok "Template saved to $limine_template"
 
+# ── install and compile Amane ───────────────────────────────────────────────
+step "Installing and compiling Amane"
+
+sudo pacman -S --needed --noconfirm gcc pkgconf wayland libxkbcommon fontconfig \
+    freetype2 expat vulkan-icd-loader libpulse pam
+or err "Failed to install Amane build dependencies"
+
+set amane_src "$DOTFILES_DIR/.amane-build"
+set amane_revision 544cbfc23af37f84ac237cd9bec53173981772b3
+if not test -d "$amane_src/.git"
+    git clone https://github.com/MystiaFin/amane.git "$amane_src"
+    or err "Failed to clone Amane"
+end
+git -C "$amane_src" checkout --detach "$amane_revision"
+or err "Failed to check out the Amane build revision"
+
+# The CLI generates the shell's Cargo manifest at build time.
+set amane_patch "$DOTFILES_DIR/system/amane/config-dependencies.patch"
+if not git -C "$amane_src" apply --reverse --check "$amane_patch" 2>/dev/null
+    git -C "$amane_src" apply "$amane_patch"
+    or err "Failed to patch Amane's generated manifest"
+end
+
+begin
+    # Use Arch's Cargo and rustc even when Rustup shims are on PATH.
+    set -lx PATH /usr/bin $PATH
+    cargo install --locked --path "$amane_src/cli" --root "$HOME/.local"
+    or err "Failed to install the Amane CLI"
+
+    env AMANE_CONFIG="$HOME/.config/amane" XDG_CACHE_HOME="$HOME/.cache" \
+        "$HOME/.local/bin/amane" compile
+    or err "Failed to compile the Amane shell"
+end
+
+test -x "$HOME/.cache/amane/amane-shell"
+or err "The compiled Amane shell is missing"
+
+ok "Amane installed and compiled"
+
 # ── enable system services ───────────────────────────────────────────────────
 step "Enabling system services"
 
@@ -262,7 +303,6 @@ set system_services \
     avahi-daemon.service \
     bluetooth.service \
     cups.service \
-    iwd.service \
     limine-snapper-sync.service \
     mullvad-daemon.service \
     mullvad-early-boot-blocking.service \
@@ -286,13 +326,16 @@ end
 # ── enable user service ─────────────────────────────────────────────────────
 step "Enabling user service"
 
-set user_services \
-    shell.service
+systemctl --user daemon-reload
+or err "Failed to reload user services"
+systemctl --user enable --force shell.service awww.service hyprpolkitagent.service opentabletdriver.service
+or err "Failed to enable desktop services"
 
-for svc in $user_services
-    systemctl --user enable --now $svc
-    and ok "  enabled $svc"
-    or warn "  failed to enable $svc"
+if systemctl --user is-active --quiet graphical-session.target
+    systemctl --user start awww.service hyprpolkitagent.service
+    or warn "Failed to start wallpaper or authentication service"
+    systemctl --user restart shell.service
+    or err "Failed to start the Amane shell"
 end
 
 # ── snapper setup ────────────────────────────────────────────────────────────
@@ -309,6 +352,28 @@ if test $HAS_NVIDIA = 1
     step "NVIDIA setup"
     info "Make sure nvidia-open-dkms and dkms are installed (done via packages)"
 end
+
+# ── configure networking for the next boot ──────────────────────────────────
+step "Configuring NetworkManager, iwd, and systemd-resolved"
+
+sudo install -Dm644 "$DOTFILES_DIR/system/etc/NetworkManager/conf.d/10-network.conf" \
+    /etc/NetworkManager/conf.d/10-network.conf
+or err "Failed to install NetworkManager configuration"
+
+sudo systemctl enable NetworkManager.service systemd-resolved.service
+or err "Failed to enable NetworkManager and systemd-resolved"
+
+# NetworkManager activates iwd over D-Bus when it needs Wi-Fi.
+sudo systemctl disable systemd-networkd.service iwd.service
+or err "Failed to disable standalone networking services"
+
+set resolver_stub /run/systemd/resolve/stub-resolv.conf
+if not string match -qx -- "$resolver_stub" (readlink /etc/resolv.conf)
+    sudo ln -sfn --backup=numbered "$resolver_stub" /etc/resolv.conf
+    or err "Failed to link /etc/resolv.conf to systemd-resolved"
+end
+
+ok "Network configuration staged for reboot"
 
 # ── done ─────────────────────────────────────────────────────────────────────
 echo ""

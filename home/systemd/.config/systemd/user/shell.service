@@ -1,15 +1,11 @@
 [Unit]
-Description=Quickshell desktop
+Description=Amane desktop shell
 PartOf=graphical-session.target
 After=graphical-session.target
-Requisite=graphical-session.target
 
 [Service]
-Environment=QT_QPA_PLATFORM=wayland
-Environment=QT_QPA_PLATFORMTHEME=qt6ct
-Environment=QT_STYLE_OVERRIDE=kvantum
-Environment=XDG_DATA_DIRS=%h/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
-ExecStart=/usr/bin/quickshell -n -p %h/.config/quickshell
+Type=simple
+ExecStart=%h/.cache/amane/amane-shell
 Restart=on-failure
 RestartSec=2
 

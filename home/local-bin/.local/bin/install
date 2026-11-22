@@ -1,0 +1,28 @@
+#!/usr/bin/env fish
+# args: Official, AUR, Flatpak
+
+switch "$argv[1]"
+    case "Official"
+        alacritty --title "float" -e fish -c "
+            set -l pkg (fzf_pick '󰏗' 'pacman' 'pacman -Si' 'pacman -Ssq'); or exit \$status
+            set -q pkg[1]; or exit 0
+            sudo pacman -S \$pkg
+            show_done \$status"
+    case "AUR"
+        alacritty --title "float" -e fish -c "
+            set -l pkg (fzf_pick '󰏗' 'aur' 'paru -Si' 'curl -s https://aur.archlinux.org/packages.gz | gunzip'); or exit \$status
+            set -q pkg[1]; or exit 0
+            paru -S \$pkg
+            show_done \$status"
+    case "Flatpak"
+        alacritty --title "float" -e fish -c "
+            set -l refs (fzf_pick '󰏗' 'flatpak' 'flatpak remote-info --user --cached flathub' \
+                'flatpak remote-ls --user --app --columns=ref,name flathub' \
+                --delimiter=\t --with-nth=2.. --accept-nth=1); or exit \$status
+            set -q refs[1]; or exit 0
+            flatpak install --user flathub \$refs
+            show_done \$status"
+    case '*'
+        echo 'Usage: install Official|AUR|Flatpak' >&2
+        exit 2
+end

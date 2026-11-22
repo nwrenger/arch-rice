@@ -1,0 +1,58 @@
+#!/usr/bin/env fish
+
+set -l relays (mullvad relay list)
+or return 1
+
+set -l choice (
+    begin
+        printf 'connect|󰌷  Connect\n'
+        printf 'disconnect|󰌹  Disconnect\n'
+
+        printf '%s\n' $relays | awk '
+            /^[^\t]/ && match($0, / \([a-z][a-z]\)$/) {
+                country = substr($0, RSTART + 2, 2)
+                country_name = substr($0, 1, RSTART - 1)
+                city = ""
+                printf "loc:%s| %s [%s]\n", country, country_name, country
+                next
+            }
+
+            country != "" && /^\t[^\t]/ && match($0, / \([a-z0-9-]+\) @ /) {
+                city = substr($0, RSTART + 2, RLENGTH - 6)
+                city_name = substr($0, 2, RSTART - 2)
+                printf "loc:%s %s|  └ %s, %s [%s %s]\n",
+                    country, city, city_name, country_name, country, city
+                next
+            }
+
+            city != "" && /^\t\t[^[:space:]]/ {
+                printf "loc:%s %s %s|    └ %s · %s, %s [%s %s]\n",
+                    country, city, $1, $1, city_name, country_name, country, city
+            }
+        '
+    end | fzf \
+        --no-multi \
+        --layout=reverse \
+        --border=rounded \
+        --delimiter='|' \
+        --with-nth=2 \
+        --accept-nth=1 \
+        --tiebreak=length,index \
+        --prompt='Mullvad ❯ ' \
+        --header='Connect / Disconnect, then locations · Search by name, code, or hostname'
+)
+
+if not set -q choice[1]
+    return
+end
+
+switch $choice
+    case connect
+        mullvad connect
+    case disconnect
+        mullvad disconnect
+    case 'loc:*'
+        set -l location (string replace 'loc:' '' -- "$choice")
+        mullvad relay set location (string split ' ' -- "$location")
+        and mullvad connect
+end

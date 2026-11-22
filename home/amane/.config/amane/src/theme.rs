@@ -1,0 +1,55 @@
+pub const BASE: &str = "#1e1e2e";
+pub const MANTLE: &str = "#181825";
+pub const SURFACE_0: &str = "#313244";
+pub const SURFACE_1: &str = "#45475a";
+pub const OVERLAY: &str = "#6c7086";
+pub const SUBTEXT: &str = "#a6adc8";
+pub const TEXT: &str = "#cdd6f4";
+
+pub const MAUVE: &str = "#cba6f7";
+pub const RED: &str = "#f38ba8";
+pub const _PEACH: &str = "#fab387";
+pub const YELLOW: &str = "#f9e2af";
+pub const GREEN: &str = "#a6e3a1";
+pub const _TEAL: &str = "#94e2d5";
+pub const SKY: &str = "#89dceb";
+pub const BLUE: &str = "#89b4fa";
+pub const LAVENDER: &str = "#b4befe";
+
+pub const FONT_FAMILY: &str = "FiraCode Nerd Font";
+pub const SYMBOLS_FONT_FAMILY: &str = "Symbols Nerd Font";
+pub const BAR_HEIGHT: f32 = 32.;
+pub const ICON_SIZE: f32 = 28.;
+pub const BAR_FONT_SM_SIZE: f32 = 11.;
+pub const BAR_FONT_SIZE: f32 = 13.;
+pub const BAR_FONT_MD_SIZE: f32 = 15.;
+pub const BAR_FONT_LG_SIZE: f32 = 16.;
+pub const BAR_FONT_XL_SIZE: f32 = 20.;
+pub const BAR_FONT_XXL_SIZE: f32 = 24.;
+pub const RADIUS: f32 = 9.;
+pub const BORDER_WIDTH: f32 = 2.;
+pub const MENU_WIDTH: f32 = 270.;
+pub const APPS_WIDTH: f32 = 470.;
+pub const MAX_HEIGHT: f32 = 612.;
+pub const MENU_ITEM_HEIGHT: f32 = 46.;
+pub const MENU_DETAL_HEIGHT: f32 = 58.;
+pub const GAB: f32 = 10.;
+pub const PADDING_SM: f32 = 8.;
+pub const PADDING_MD: f32 = 18.;
+pub const POPUP_PADDING: f32 = 14.;
+
+pub const OSD_BASE: &str = "#1e1e2ef5";
+pub const OSD_WIDTH: f32 = 210.;
+pub const OSD_MAX_WIDTH: f32 = 420.;
+pub const OSD_HEIGHT: f32 = 66.;
+pub const OSD_BOTTOM: i32 = 68;
+pub const OSD_ICON_SIZE: f32 = 25.;
+pub const OSD_TRACK_WIDTH: f32 = 130.;
+pub const OSD_TRACK_HEIGHT: f32 = 7.;
+
+pub const NOTIFICATION_WIDTH: f32 = 340.;
+pub const NOTIFICATION_MIN_HEIGHT: f32 = 88.;
+pub const NOTIFICATION_ICON_SIZE: f32 = 48.;
+pub const NOTIFICATION_PADDING: f32 = 12.;
+pub const NOTIFICATION_TITLE_SIZE: f32 = 14.;
+pub const NOTIFICATION_BODY_SIZE: f32 = 12.;

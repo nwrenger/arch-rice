@@ -1,5 +1,10 @@
 function show_done
-    if test $status -eq 0
+    set -l result $status
+    if set -q argv[1]
+        set result $argv[1]
+    end
+
+    if test $result -eq 0
         echo
         bash -c '
             frames=("⢂" "⢁" "⡁" "⡈" "⡐" "⡠" "⢄")
@@ -10,7 +15,9 @@ function show_done
                 printf "\r\033[K\033[0m\033[?25h"
             }
 
-            trap cleanup EXIT INT TERM
+            trap cleanup EXIT
+            trap "exit 130" INT
+            trap "exit 143" TERM
             printf "\033[?25l"
 
             while true; do
@@ -28,5 +35,7 @@ function show_done
                 ((ticks++)) || true
             done
         '
+    else
+        return $result
     end
 end

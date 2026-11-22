@@ -1,0 +1,23 @@
+[package]
+name = "amane-shell"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "amane-shell"
+path = '/home/nils/.config/amane/src/main.rs'
+
+[dependencies]
+amane = { path = '/home/nils/.cache/amane/library' }
+chrono = "0.4"
+zbus = "5.19"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 3
+debug = false
+incremental = false
+
+[workspace]

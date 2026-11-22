@@ -45,13 +45,7 @@ hl.window_rule({
 })
 
 -- Floating windows
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.packageInstall, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.aurInstall, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.flatpakInstall, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.packageRemove, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.flatpakRemove, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.systemUpdate, }, tag = "+float", })
-hl.window_rule({ match = { class = apps.terminalClass, title = apps.systemMonitor, }, tag = "+float", })
+hl.window_rule({ match = { class = apps.terminalClass, title = "float", }, tag = "+float", })
 hl.window_rule({ match = { class = "com.gabm.satty", }, tag = "+float", })
 
 hl.window_rule({
@@ -66,7 +60,7 @@ hl.window_rule({
 hl.window_rule({
     match = {
         class = apps.terminalClass,
-        title = "fastfetch",
+        title = "smolfloat",
     },
     float = true,
     size = "575 222",
