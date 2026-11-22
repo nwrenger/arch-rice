@@ -32,16 +32,25 @@ function restart-prompt
     gum confirm "Restart now?"
 end
 
+function finish-update
+    if isatty stdin; and isatty stdout
+        show_done 0
+    else
+        return 0
+    end
+end
+
 # Get sudo
 set_color b4befe
 echo "󰌋 Enter sudo password to proceed"
 set_color normal
 sudo -v
 or begin
+    set -l auth_status $status
     set_color red
     echo "󰅚 Failed to authenticate with sudo."
     set_color normal
-    exit 0
+    exit $auth_status
 end
 echo ""
 
@@ -49,7 +58,7 @@ echo ""
 set_color cyan
 echo " Checking for system package updates..."
 set_color normal
-paru -Sy
+paru -Sy; or exit $status
 set system_updates (paru -Qu 2>/dev/null)
 echo ""
 
@@ -74,13 +83,14 @@ if test (count $system_updates) -eq 0; and test (count $flatpak_updates) -eq 0
         set_color yellow
         echo " System packages are up to date, but Flatpak updates could not be checked."
         set_color normal
-        exit 0
+        exit $FLATPAK_CHECK_STATUS
     end
 
     set_color green
     echo "󰸞 System is already up to date."
     set_color normal
-    exit 0
+    finish-update
+    exit $status
 end
 
 set pending_updates
@@ -220,10 +230,24 @@ if test (count $flatpak_updates) -gt 0
     echo ""
 end
 
-if test $SYSTEM_UPDATE_STATUS -ne 0 -o $FLATPAK_UPDATE_STATUS -ne 0
-    exit 0
+for result in $SYSTEM_UPDATE_STATUS $FLATPAK_UPDATE_STATUS $LIMINE_SYNC_STATUS $FLATPAK_CHECK_STATUS
+    if test $result -ne 0
+        exit $result
+    end
 end
 
-if test $DID_SYSTEM_UPDATE -eq 1; and restart-prompt
-    shell session reboot
+if test $DID_SYSTEM_UPDATE -eq 1
+    restart-prompt
+    set -l restart_status $status
+    switch $restart_status
+        case 0
+            systemctl reboot
+            exit $status
+        case 1
+            # Restart declined; finish normally.
+        case '*'
+            exit $restart_status
+    end
 end
+
+finish-update
