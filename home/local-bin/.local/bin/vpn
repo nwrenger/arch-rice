@@ -32,6 +32,7 @@ set -l choice (
         '
     end | fzf \
         --no-multi \
+        --exact \
         --layout=reverse \
         --border=rounded \
         --delimiter='|' \
@@ -39,6 +40,7 @@ set -l choice (
         --accept-nth=1 \
         --tiebreak=length,index \
         --prompt='Mullvad ❯ ' \
+        --color='prompt:#cba6f7,pointer:#cba6f7,marker:#a6e3a1,hl:#89b4fa,hl+:#89b4fa' \
         --header='Connect / Disconnect, then locations · Search by name, code, or hostname'
 )
 
