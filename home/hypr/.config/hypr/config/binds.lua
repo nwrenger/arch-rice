@@ -17,6 +17,7 @@ hl.bind(mainMod .. " + P", hl.dsp.exec_cmd(apps.passwordManager))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(apps.mails))
 
 -- System ctl
+hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.calendar))
 hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.audio))
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.mic))
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd(apps.terminal .. " --title float" .. " -e " .. apps.internet))

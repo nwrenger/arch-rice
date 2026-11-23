@@ -15,6 +15,8 @@ local apps = {
     passwordManager = "/usr/bin/env XDG_CURRENT_DESKTOP=GNOME /opt/enpass/Enpass",
     mails = "geary",
 
+    calendar = "chroncal",
+
     audio = "wiremix -v output",
     mic = "wiremix -v input",
     internet = "wlctl",
