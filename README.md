@@ -106,15 +106,16 @@ arch-rice/
 
 ## Desktop controls
 
-| Binding           | Action                        |
-| ----------------- | ----------------------------- |
-| `Super+Space`     | Application launcher          |
-| `Super+Alt+Space` | System menu                   |
-| `Super+Escape`    | Power menu                    |
-| `Super+Shift+E`   | Wi-Fi manager (`wlctl`)       |
-| `Super+Shift+V`   | Mullvad menu                  |
-| `Super+Shift+W`   | Random wallpaper              |
-| Volume keys       | Volume controls and Amane OSD |
+| Binding             | Action                                                    |
+| ------------------- | --------------------------------------------------------- |
+| `Super+Space`       | Application launcher                                      |
+| `Super+Alt+Space`   | System menu                                               |
+| `Super+Escape`      | Power menu                                                |
+| `Super+Shift+E`     | Wi-Fi manager (`wlctl`)                                   |
+| `Super+Shift+V`     | Mullvad menu                                              |
+| `Super+Shift+W`     | Random wallpaper                                          |
+| Volume keys         | Volume controls and Amane OSD                             |
+| Media playback keys | Previous track, play/pause, and next track with Amane OSD |
 
 `shell.service` runs `~/.cache/amane/amane-shell` in the graphical session. The `shell` command wraps Amane IPC. Try `shell launcher apps`, `shell launcher power`, or `shell volume mute`. Run `random-wallpaper` to change the wallpaper from a terminal.
 

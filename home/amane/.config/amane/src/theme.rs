@@ -36,14 +36,15 @@ pub const MENU_DETAL_HEIGHT: f32 = 58.;
 pub const GAB: f32 = 10.;
 pub const PADDING_SM: f32 = 8.;
 pub const PADDING_MD: f32 = 18.;
-pub const POPUP_PADDING: f32 = 14.;
+pub const POPUP_PADDING: f32 = 18.;
 
 pub const OSD_BASE: &str = "#1e1e2ef5";
 pub const OSD_WIDTH: f32 = 210.;
-pub const OSD_MAX_WIDTH: f32 = 420.;
+pub const OSD_MAX_WIDTH: f32 = 500.;
 pub const OSD_HEIGHT: f32 = 66.;
 pub const OSD_BOTTOM: i32 = 68;
 pub const OSD_ICON_SIZE: f32 = 25.;
+pub const OSD_FONT_SIZE: f32 = 16.;
 pub const OSD_TRACK_WIDTH: f32 = 130.;
 pub const OSD_TRACK_HEIGHT: f32 = 7.;
 

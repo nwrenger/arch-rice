@@ -591,11 +591,6 @@ fn apps() -> Rectangle {
             };
 
             let description = app.description().unwrap_or("");
-            let truncated_description = if let Some((end, _)) = description.char_indices().nth(49) {
-                format!("{}..", &description[..end])
-            } else {
-                description.to_string()
-            };
 
             columns.push(Box::new(
                 Rectangle::new()
@@ -623,10 +618,11 @@ fn apps() -> Rectangle {
                                     .font(theme::FONT_FAMILY)
                                     .size(theme::BAR_FONT_MD_SIZE)
                                     .color(Color::from(theme::TEXT)),
-                                Text::new(truncated_description)
+                                Text::new(description)
                                     .font(theme::FONT_FAMILY)
                                     .size(theme::BAR_FONT_SM_SIZE)
-                                    .color(Color::from(theme::SUBTEXT)),
+                                    .color(Color::from(theme::SUBTEXT))
+                                    .elide(),
                             ))
                             .gap(theme::BORDER_WIDTH)
                         ))

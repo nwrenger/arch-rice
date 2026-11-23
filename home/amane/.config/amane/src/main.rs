@@ -15,6 +15,7 @@ fn main() {
         .ipc("launcher", launcher::toggle)
         .ipc("volume", utils::volume)
         .ipc("mic", utils::mic)
+        .ipc("media", osd::media_ipc)
         .ipc("showOsd", osd::ipc)
         .ipc("clearNotifications", notifications::clear)
         .window_per_monitor(launcher::root)

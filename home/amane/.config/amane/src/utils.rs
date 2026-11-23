@@ -182,10 +182,8 @@ impl AudioTarget {
         drop(pending);
 
         let message = match (self, next.muted) {
-            (Self::Output, true) => "Muted".into(),
-            (Self::Output, false) => format!("{}%", next.volume),
-            (Self::Microphone, true) => "Microphone muted".into(),
-            (Self::Microphone, false) => format!("Microphone {}%", next.volume),
+            (_, true) => "Muted".into(),
+            (_, false) => format!("{}%", next.volume),
         };
         let percent = if next.muted { 0 } else { next.volume };
         osd::show(

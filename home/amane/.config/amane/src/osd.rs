@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use amane::{
-    Align, Animation, Color, Column, Horizontal, Keyboard, Layer, LayerWindow, Margin, Monitor,
-    Rectangle, Row, Service, Size, Text, Vertical, Widget, Zone, children,
+    Align, Animation, Color, Column, Horizontal, Keyboard, Layer, LayerWindow, Margin, Media,
+    MediaPlayer, Monitor, Padding, Rectangle, Row, Service, Size, Text, Vertical, Widget, Zone,
 };
 
 use crate::{
@@ -12,18 +14,75 @@ use crate::{
 
 const DURATION: Duration = Duration::from_millis(1_800);
 const ANIMATION: Duration = Duration::from_millis(120);
+
 static TIMER: WakeTimer = WakeTimer::new();
+static LAST_MEDIA_TOGGLE: Mutex<Option<MediaToggle>> = Mutex::new(None);
+
+struct MediaToggle {
+    player: String,
+    playing: bool,
+    until: Instant,
+}
+
+fn next_media_toggle(
+    last: &mut Option<MediaToggle>,
+    player: &str,
+    reported_playing: bool,
+    now: Instant,
+) -> bool {
+    // Keep flipping the requested state while Amane's cached value may still be stale.
+    let playing = !last
+        .as_ref()
+        .filter(|request| request.player == player && now < request.until)
+        .map_or(reported_playing, |request| request.playing);
+    *last = Some(MediaToggle {
+        player: player.to_owned(),
+        playing,
+        until: now + Media::interval() + Duration::from_millis(200),
+    });
+    playing
+}
+
+enum PopupMessage {
+    Text(String),
+    TrackAfterSkip(MediaPlayer),
+}
+
+impl PopupMessage {
+    fn text(&self) -> Option<Cow<'_, str>> {
+        match self {
+            Self::Text(text) => Some(Cow::Borrowed(text)),
+            Self::TrackAfterSkip(before) => {
+                // Reading Media in the view redraws this popup on the existing media poll.
+                let media = Media::read();
+                let title = media
+                    .players()
+                    .iter()
+                    .find(|player| player.name() == before.name())
+                    .filter(|player| {
+                        (player.title(), player.artist()) != (before.title(), before.artist())
+                            || before.position().saturating_sub(player.position())
+                                > Duration::from_secs(1)
+                    })
+                    .map(MediaPlayer::title)
+                    .filter(|title| !title.is_empty());
+                title.map(|title| Cow::Owned(title.to_owned()))
+            }
+        }
+    }
+}
 
 struct Popup {
     icon: String,
-    message: String,
-    target: Option<String>,
+    message: PopupMessage,
     progress: bool,
+    target: Option<String>,
     until: Instant,
 }
 
 struct Osd {
     popup: Option<Popup>,
+
     progress: Animation<f32>,
 }
 
@@ -31,6 +90,7 @@ impl Service for Osd {
     fn new() -> Self {
         Self {
             popup: None,
+
             progress: Animation::new(0.).duration(ANIMATION),
         }
     }
@@ -58,6 +118,10 @@ impl Service for Osd {
 }
 
 pub(crate) fn show(icon: impl Into<String>, message: String, progress: Option<f32>) {
+    show_popup(icon, PopupMessage::Text(message), progress);
+}
+
+fn show_popup(icon: impl Into<String>, message: PopupMessage, progress: Option<f32>) {
     let target = focused_output();
     let until = Instant::now() + DURATION;
     let progress = progress
@@ -76,6 +140,7 @@ pub(crate) fn show(icon: impl Into<String>, message: String, progress: Option<f3
                 state.progress = Animation::new(value).duration(ANIMATION);
             }
         }
+
         state.popup = Some(Popup {
             target,
             icon: icon.into(),
@@ -104,6 +169,37 @@ pub(crate) fn ipc(args: &[String]) -> String {
     "ok".into()
 }
 
+pub(crate) fn media_ipc(args: &[String]) -> String {
+    const USAGE: &str = "usage: media previous | toggle | next";
+    let [action] = args else { return USAGE.into() };
+    let Some(player) = Media::read().active().cloned() else {
+        return "no media player".into();
+    };
+    let (icon, message) = match action.as_str() {
+        "previous" => {
+            player.previous();
+            ("󰒮", PopupMessage::TrackAfterSkip(player))
+        }
+        "toggle" => {
+            let mut last = LAST_MEDIA_TOGGLE
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let playing =
+                next_media_toggle(&mut last, player.name(), player.playing(), Instant::now());
+            player.play_pause();
+            let icon = if playing { "󰐊" } else { "󰏤" };
+            (icon, PopupMessage::Text(player.title().to_owned()))
+        }
+        "next" => {
+            player.next();
+            ("󰒭", PopupMessage::TrackAfterSkip(player))
+        }
+        _ => return USAGE.into(),
+    };
+    show_popup(icon, message, None);
+    "ok".into()
+}
+
 pub(crate) fn root(monitor: &Monitor) -> LayerWindow {
     let state = Osd::read();
     let popup = state.popup.as_ref().filter(|popup| {
@@ -113,13 +209,26 @@ pub(crate) fn root(monitor: &Monitor) -> LayerWindow {
                 .as_ref()
                 .is_none_or(|target| target == &monitor.name)
     });
-    let (width, card) = match popup {
-        Some(popup) => card(popup, popup.progress.then(|| state.progress.value())),
-        None => (
+    let panel = popup.map(|popup| {
+        let message = popup.message.text();
+        let (text, color) = match message.as_deref() {
+            Some(text) => (text, theme::TEXT),
+            None => ("Loading...", theme::OVERLAY),
+        };
+        card(
+            &popup.icon,
+            text,
+            Color::from(color),
+            popup.progress.then(|| state.progress.value()),
+        )
+    });
+    let visible = panel.is_some();
+    let (width, card) = panel.unwrap_or_else(|| {
+        (
             theme::OSD_WIDTH,
             Rectangle::new().width(Size::Parent).height(Size::Parent),
-        ),
-    };
+        )
+    });
 
     LayerWindow::new()
         .width(width)
@@ -135,33 +244,92 @@ pub(crate) fn root(monitor: &Monitor) -> LayerWindow {
         .space(Zone::Ignore)
         .keyboard(Keyboard::None)
         .input_region(Vec::new())
-        .visible(popup.is_some())
+        .visible(visible)
         .child(card)
 }
 
-fn card(popup: &Popup, progress: Option<f32>) -> (f32, Rectangle) {
-    let label = Text::new(&popup.message)
+fn message_text(message: &str) -> Text {
+    Text::new(message)
         .font(theme::FONT_FAMILY)
-        .size(theme::NOTIFICATION_TITLE_SIZE)
-        .color(Color::from(theme::TEXT));
-    let Size::Fixed(label_width) = label.width() else {
+        .size(theme::OSD_FONT_SIZE)
+        .color(Color::from(theme::TEXT))
+}
+
+fn message_width(message: &str) -> f32 {
+    let Size::Fixed(width) = message_text(message).width() else {
         unreachable!("unwrapped text has a fixed width")
     };
-    let icon_width = if popup.icon.is_empty() {
+    width
+}
+
+fn fit_message(message: &str, width: f32) -> Cow<'_, str> {
+    const SUFFIX: &str = "..";
+    if message_width(message) <= width {
+        return Cow::Borrowed(message);
+    }
+
+    let room = width - message_width(SUFFIX);
+    if room < 0. {
+        return Cow::Borrowed("");
+    }
+    let end = message
+        .char_indices()
+        .skip(1)
+        .map(|(index, _)| index)
+        .take_while(|&index| message_width(&message[..index]) <= room)
+        .last()
+        .unwrap_or(0);
+    Cow::Owned(format!("{}{SUFFIX}", message[..end].trim_end()))
+}
+
+fn card(icon: &str, message: &str, color: Color, progress: Option<f32>) -> (f32, Rectangle) {
+    let icon_padding = theme::GAB;
+    let icon_width = if icon.is_empty() {
         0.
     } else {
-        theme::OSD_ICON_SIZE + theme::POPUP_PADDING
+        theme::OSD_ICON_SIZE + icon_padding * 2.
     };
-    let desired_text_width = if progress.is_some() {
-        label_width.max(theme::OSD_TRACK_WIDTH)
+    let text_left = if icon.is_empty() {
+        theme::POPUP_PADDING
     } else {
-        label_width
+        0.
     };
-    let width = (desired_text_width + icon_width + theme::PADDING_MD * 2.)
+    let card_padding = Padding {
+        left: theme::PADDING_MD,
+        ..Padding::default()
+    };
+    let fixed_width = card_padding.left * 1.5 + icon_width + text_left + theme::POPUP_PADDING;
+    let mut text_width = message_width(message);
+    if progress.is_some() {
+        text_width = text_width.max(theme::OSD_TRACK_WIDTH);
+    }
+    let width = (fixed_width + text_width)
+        .ceil()
         .clamp(theme::OSD_WIDTH, theme::OSD_MAX_WIDTH);
-    let text_width = desired_text_width.min(width - icon_width - theme::PADDING_MD * 2.);
+    let message = fit_message(message, (width - fixed_width).max(0.));
 
-    let mut contents = children!(label.elide());
+    let mut row: Vec<Box<dyn Widget>> = Vec::new();
+    if !icon.is_empty() {
+        row.push(Box::new(
+            Rectangle::new()
+                .width(icon_width)
+                .height(Size::Parent)
+                .padding(icon_padding)
+                .align_child(Align::Start, Align::Center)
+                .child(
+                    Text::new(icon)
+                        .font(theme::SYMBOLS_FONT_FAMILY)
+                        .size(theme::OSD_ICON_SIZE)
+                        .color(Color::from(theme::MAUVE))
+                        .elide(),
+                ),
+        ));
+    }
+
+    let mut content: Vec<Box<dyn Widget>> = Vec::new();
+    if !message.is_empty() {
+        content.push(Box::new(message_text(&message).color(color)));
+    }
     if let Some(value) = progress {
         let radius = theme::OSD_TRACK_HEIGHT / 2.;
         let track = Rectangle::new()
@@ -181,29 +349,25 @@ fn card(popup: &Popup, progress: Option<f32>) -> (f32, Rectangle) {
         } else {
             track
         };
-        contents.push(Box::new(track));
-    }
-    let mut row: Vec<Box<dyn Widget>> = Vec::new();
-    if !popup.icon.is_empty() {
-        row.push(Box::new(
-            Rectangle::new()
-                .width(theme::OSD_ICON_SIZE)
-                .height(theme::OSD_ICON_SIZE + theme::PADDING_SM)
-                .align_child(Align::Center, Align::Center)
-                .child(
-                    Text::new(&popup.icon)
-                        .font(theme::SYMBOLS_FONT_FAMILY)
-                        .size(theme::OSD_ICON_SIZE)
-                        .color(Color::from(theme::MAUVE))
-                        .tight(),
-                ),
-        ));
+        content.push(Box::new(track));
     }
     row.push(Box::new(
-        Column::new(contents)
-            .width(text_width)
-            .gap(theme::OSD_TRACK_HEIGHT),
+        Rectangle::new()
+            .width(Size::Parent)
+            .height(Size::Parent)
+            .padding(Padding {
+                left: text_left,
+                right: theme::POPUP_PADDING,
+                ..Padding::default()
+            })
+            .align_child(Align::Start, Align::Center)
+            .child(
+                Column::new(content)
+                    .width(Size::Parent)
+                    .gap(theme::OSD_TRACK_HEIGHT),
+            ),
     ));
+
     (
         width,
         Rectangle::new()
@@ -212,7 +376,39 @@ fn card(popup: &Popup, progress: Option<f32>) -> (f32, Rectangle) {
             .fill(theme::OSD_BASE)
             .border(theme::BORDER_WIDTH, theme::MAUVE)
             .radius(theme::RADIUS)
-            .align_child(Align::Center, Align::Center)
-            .child(Row::new(row).gap(theme::POPUP_PADDING).align(Align::Center)),
+            .padding(card_padding)
+            .clip()
+            .child(
+                Row::new(row)
+                    .width(Size::Parent)
+                    .height(Size::Parent)
+                    .align(Align::Center),
+            ),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn media_toggles_alternate_even_when_the_reported_state_is_stale() {
+        let now = Instant::now();
+        let mut last = None;
+        assert!(!next_media_toggle(&mut last, "player", true, now));
+        assert!(next_media_toggle(&mut last, "player", true, now));
+        assert!(!next_media_toggle(&mut last, "player", true, now));
+
+        let expired = last.as_ref().unwrap().until;
+        assert!(!next_media_toggle(&mut last, "player", true, expired));
+        assert!(!next_media_toggle(&mut last, "other", true, expired));
+    }
+
+    #[test]
+    fn fits_osd_labels_with_two_dots_and_keeps_utf8_intact() {
+        let width = message_width("écl..") + 0.01;
+        assert_eq!(fit_message("éclair", width), "écl..");
+        assert_eq!(fit_message("écl", width), "écl");
+        assert_eq!(fit_message("éclair", 0.), "");
+    }
 }
