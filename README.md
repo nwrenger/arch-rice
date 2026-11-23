@@ -1,8 +1,8 @@
 # arch-rice
 
-Arch Linux + Hyprland setup with a single Quickshell desktop. Catppuccin Mocha / Mauve.
+Arch Linux + Hyprland with the Amane desktop shell, themed in Catppuccin Mocha / Mauve.
 
-Quickshell owns the wallpaper, bar, launcher, system menus, notifications, OSD, Polkit agent, and shutdown/logout transitions. PipeWire, NetworkManager, BlueZ, Mullvad, systemd, Pacman, Snapper, and Limine remain the underlying system services.
+Amane provides the bar, system tray, launcher, system and power menus, notifications, and OSD. Wallpaper transitions use `awww`, and authentication prompts use `hyprpolkitagent`.
 
 ## Fresh install
 
@@ -25,7 +25,9 @@ The installer will:
 - Install all packages from `packages-pacman.txt`, `packages-aur.txt`, and `packages-flatpak.txt`
 - Copy all home dotfiles directly into `$HOME`
 - Copy system configs
-- Enable system + user services
+- Install the Amane CLI with Cargo and compile the desktop shell before enabling `shell.service`
+- Enable the desktop user services, including `awww`, `hyprpolkitagent`, and OpenTabletDriver
+- Set up NetworkManager and systemd-resolved for the next boot
 - Clean up (`~/.dotfiles` removed after install)
 - Give instructions for the next manual steps
 
@@ -49,6 +51,12 @@ chsh -s /bin/fish
 
 4. **Snapper (Optional)**: If subvolume layout differs, run `sudo snapper -c root create-config /`
 
+5. **Reboot** to start the configured network services, then log in to Hyprland.
+
+## Networking
+
+NetworkManager manages Ethernet and Wi-Fi. It activates iwd on demand as its Wi-Fi backend and passes DNS information to systemd-resolved. The installer enables NetworkManager and systemd-resolved at boot, points `/etc/resolv.conf` at the resolved stub, and disables standalone startup of iwd and systemd-networkd. Use `wlctl` to manage Wi-Fi.
+
 ## Repo layout
 
 ```
@@ -61,7 +69,7 @@ arch-rice/
 │
 ├── home/                 ← copied directly into $HOME
 │   ├── hypr/             → .config/hypr/
-│   ├── quickshell/       → .config/quickshell/
+│   ├── amane/            → .config/amane/ (Rust shell source)
 │   ├── alacritty/        → .config/alacritty/
 │   ├── fish/             → .config/fish/
 │   ├── starship/         → .config/starship.toml
@@ -78,12 +86,15 @@ arch-rice/
 │   ├── local-bin/        → .local/bin/ (custom scripts)
 │   └── wallpaper/        → Pictures/wallpaper/
 │
-└── system/               ← copied to / with sudo
+└── system/               ← system configs and installer assets
+    ├── amane/
+    │   └── config-dependencies.patch
     ├── etc/
+    │   ├── NetworkManager/conf.d/10-network.conf
     │   ├── locale.conf
     │   ├── pacman.conf
     │   ├── snapper/configs/root
-    │   ├── limine-snapper-sync.conf
+    │   ├── default/limine
     │   └── sddm.conf.d/theme.conf
     ├── boot/
     │   └── limine.conf.template  ← options only, no entries, no PARTUUID
@@ -93,18 +104,26 @@ arch-rice/
         └── where_is_my_sddm_theme/
 ```
 
-## Quickshell controls
+## Desktop controls
 
-| Binding           | Action                            |
-| ----------------- | --------------------------------- |
-| `Super+Space`     | Application launcher              |
-| `Super+Alt+Space` | System menu                       |
-| `Super+Escape`    | Power menu                        |
-| `Super+Shift+V`   | Mullvad menu                      |
-| `Super+Shift+W`   | Random wallpaper                  |
-| Media keys        | Native Quickshell control and OSD |
+| Binding           | Action                        |
+| ----------------- | ----------------------------- |
+| `Super+Space`     | Application launcher          |
+| `Super+Alt+Space` | System menu                   |
+| `Super+Escape`    | Power menu                    |
+| `Super+Shift+E`   | Wi-Fi manager (`wlctl`)       |
+| `Super+Shift+V`   | Mullvad menu                  |
+| `Super+Shift+W`   | Random wallpaper              |
+| Volume keys       | Volume controls and Amane OSD |
 
-The desktop is managed by `shell.service`. Use `shell` for IPC, for example `shell launcher apps`, `shell wallpaper random`, or `shell session reboot`.
+`shell.service` runs `~/.cache/amane/amane-shell` in the graphical session. The `shell` command wraps Amane IPC. Try `shell launcher apps`, `shell launcher power`, or `shell volume mute`. Run `random-wallpaper` to change the wallpaper from a terminal.
+
+After editing your installed shell source in `~/.config/amane/src/`, rebuild it and restart the user service from your graphical session.
+
+```bash
+env AMANE_CONFIG="$HOME/.config/amane" XDG_CACHE_HOME="$HOME/.cache" amane compile &&
+    systemctl --user restart shell.service
+```
 
 ## Hardware tags
 
