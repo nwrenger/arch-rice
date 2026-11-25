@@ -98,7 +98,8 @@
     "cursor": "pointer",
   },
   "network": {
-    "format-wifi": "󰤨 {signalStrength}%",
+    "format-wifi": "{icon}",
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
     "format-ethernet": "󰈀",
     "format-linked": "󰈂",
     "format-disconnected": "󰤭",
