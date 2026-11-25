@@ -81,6 +81,7 @@ qt6-5compat
 qt6ct
 qt6-wayland
 resvg
+ripgrep
 rofi
 rustup
 sassc

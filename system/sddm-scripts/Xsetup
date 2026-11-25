@@ -3,4 +3,3 @@
 
 xrandr --output DP-3 --auto --primary
 xrandr --output DP-2 --auto --same-as DP-3 --noprimary
-

@@ -33,7 +33,7 @@
       },
       "default_config_options": {
         "model": "gpt-6.1-sol",
-        "mode": "agent-full-access",
+        "mode": "read-only",
         "reasoning_effort": "high"
       },
       "type": "registry"

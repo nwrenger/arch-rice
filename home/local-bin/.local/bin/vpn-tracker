@@ -1,24 +1,55 @@
 #!/usr/bin/env fish
 
 set -g previous unknown
+set -g current unknown
+set -g location ''
 
-function update
-    set -l current
-    set -l vpn_status (mullvad status)
+function publish
+    set -l state "$current"
+    if test "$state" = unknown
+        set state "$previous"
+    end
+    set -l icon '󰌙'
+    if test "$state" = connected
+        set icon '󰒃'
+    end
+    set -l tooltip 'Loading…'
+    if test -n "$location"
+        set tooltip "$location"
+    end
+    jq -cn --arg text "$icon" --arg class "$state" --arg tooltip "$tooltip" \
+        '{text: $text, class: $class, tooltip: $tooltip}'
+end
 
-    if string match -q 'Connected*' $vpn_status
+function update --argument-names line
+    if string match -rq '^\s*Visible location(?: \(new\))?:' -- "$line"
+        contains -- "$current" connected disconnected; or return
+        set -l next_location (string replace -r '^\s*Visible location(?: \(new\))?:\s*' '' -- "$line" \
+            | string replace -r '\.\s+IPv[46]:.*$' '' | string trim)
+        test "$location" = "$next_location"; and return
+        set location "$next_location"
+        publish
+        return
+    end
+
+    if string match -q 'Connected*' -- "$line"
         set current connected
-    else if string match -q 'Disconnected*' $vpn_status
+    else if string match -q 'Disconnected*' -- "$line"
         set current disconnected
+    else if string match -rq '^(Connecting|Disconnecting|Reconnecting|Blocked|Error)' -- "$line"
+        set current unknown
+        set location ''
+        publish
+        return
     else
         return
     end
 
     test "$previous" = "$current"; and return
+    set location ''
+    publish
 
     if test "$current" = connected
-        echo '{"text":"󰒃","class":"connected","tooltip":"VPN connected"}'
-
         if test "$previous" != unknown
             awob send --preempt \
                 --icon network-vpn \
@@ -27,8 +58,6 @@ function update
                 vpn 100 100 >/dev/null
         end
     else
-        echo '{"text":"󰌙","class":"disconnected","tooltip":"VPN disconnected"}'
-
         if test "$previous" != unknown
             awob send --preempt \
                 --icon network-vpn-disconnected \
@@ -41,8 +70,6 @@ function update
     set -g previous $current
 end
 
-update
-
 mullvad status listen | while read -l line
-    update
+    update "$line"
 end

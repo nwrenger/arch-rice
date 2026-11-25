@@ -5,7 +5,7 @@ set -l mode $argv[1]
 for pid in (pgrep -u (id -u) -x rofi)
     set -l args (string split0 </proc/$pid/cmdline)
 
-    if contains -- "menu:system-menu $mode" $args
+    if contains -- "menu:system-menu $mode" $args; or string match -q -- "menu:system-menu $mode *" $args
         kill $pid
         exit 0
     end
@@ -25,9 +25,6 @@ switch "$mode"
             -me-accept-entry MousePrimary \
             -eh 2 \
             -theme-str '
-                entry {
-                    placeholder: "Applications";
-                }
                 listview {
                     fixed-height: true;
                     dynamic: false;
@@ -38,7 +35,7 @@ switch "$mode"
         exec rofi \
             -replace \
             -show menu \
-            -modes "menu:system-menu $argv[1]" \
+            -modes "menu:system-menu $mode" \
             -eh 1 \
             -hover-select \
             -me-select-entry '' \

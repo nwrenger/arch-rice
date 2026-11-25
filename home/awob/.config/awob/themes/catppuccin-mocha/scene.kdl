@@ -12,10 +12,10 @@ palette {
 }
 
 styles {
-    style "low"      accent="$red"
-    style "normal"   accent="$red"
-    style "warn"     accent="$yellow"
-    style "critical" accent="$red"
+    style "low"      accent="{$event == 'mic' ? $yellow : $red}"
+    style "normal"   accent="{$event == 'mic' ? $yellow : $red}"
+    style "warn"     accent="{$event == 'mic' ? $yellow : $red}"
+    style "critical" accent="{$event == 'mic' ? $yellow : $red}"
     style "muted"    accent="$overlay"
     style "overflow" accent="$mauve"
 }

@@ -126,10 +126,6 @@ tooltip label {
     color: @peach;
 }
 
-#custom-mic {
-    color: @yellow;
-}
-
 #custom-vpn {
     color: @lavender;
 }
@@ -146,15 +142,13 @@ tooltip label {
     color: @red;
 }
 
-#wireplumber.mic {
+#wireplumber.input {
     color: @yellow;
 }
 
 #wireplumber.output.muted,
-#wireplumber.mic.muted,
-#custom-mic.muted,
+#wireplumber.input.muted,
 #custom-vpn.disconnected,
-#custom-uxplay.off,
 #bluetooth.disabled,
 #bluetooth.off,
 #network.disconnected,

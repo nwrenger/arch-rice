@@ -10,7 +10,6 @@ function emit_header
     set -l current $argv[2]
     set -l initial $argv[3]
 
-    printf '\0theme\x1fentry { placeholder: "%s"; }\n' "$prompt_text"
     printf '\0data\x1f%s|%s\n' $current $initial
     printf '\0no-custom\x1ftrue\n'
     printf '\0keep-selection\x1ffalse\n'
@@ -106,14 +105,8 @@ switch "$ROFI_RETV"
         set -l initial_menu $data[2]
 
         switch "$ROFI_INFO"
-            case install
-                show_install $initial_menu
-
-            case remove
-                show_remove $initial_menu
-
-            case power
-                show_power $initial_menu
+            case install remove power
+                show_menu "$ROFI_INFO" $initial_menu
 
             case about
                 launch alacritty --title smolfloat -e fish -c 'fastfetch; show_done'

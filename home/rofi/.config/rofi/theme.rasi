@@ -57,7 +57,7 @@ textbox-search {
 entry {
     font: "FiraCode Nerd Font 16px";
     text-color: @text;
-    placeholder: "Search...";
+    placeholder: "Search…";
     placeholder-color: @overlay;
     cursor-color: @text;
 
