@@ -11,6 +11,9 @@
 @define-color blue     #89b4fa;
 @define-color lavender #b4befe;
 
+@define-color surface_0 #313244;
+@define-color surface_1 #45475a;
+
 * {
     font-family: "FiraCode Nerd Font";
     font-feature-settings: "liga";
@@ -23,6 +26,49 @@
 
 window#waybar {
     background-color: @base;
+}
+
+#tray menu {
+    background-color: alpha(@base, 0.95);
+    border: 2px solid @mauve;
+    border-radius: 9px;
+    padding: 6px;
+}
+
+#tray window decoration {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+#tray menu menuitem {
+    background-color: transparent;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+#tray menu menuitem:hover {
+    background-color: @surface_0;
+}
+
+#tray menu menuitem:disabled label {
+    color: @overlay;
+}
+
+#tray menu separator {
+    background-color: @surface_1;
+    min-height: 1px;
+    margin: 4px 8px;
+}
+
+#tray menu arrow {
+    color: @overlay;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+#tray menu arrow:hover {
+    color: @text;
 }
 
 tooltip {

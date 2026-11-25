@@ -17,7 +17,7 @@
   "custom/menu": {
     "format": "󰗀",
     "on-click": "launcher root",
-    "on-right-click": "launcher apps",
+    "on-click-right": "launcher apps",
     "tooltip": false,
   },
   "hyprland/workspaces": {
