@@ -123,7 +123,7 @@
       "provider": "openai-subscribed",
       "model": "gpt-6.2-sol",
       "enable_thinking": true,
-      "effort": "high"
+      "effort": "medium"
     },
     "dock": "right",
   },

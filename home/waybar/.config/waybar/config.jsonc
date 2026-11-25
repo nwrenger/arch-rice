@@ -56,7 +56,7 @@
     },
   },
   "cpu": {
-    "format": "<span foreground='#a6e3a1'></span> {icon}",
+    "format": "<span foreground='#a6e3a1'></span> {icon}",
     "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"],
     "states": {
       "mid": 50,
