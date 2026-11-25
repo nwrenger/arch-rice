@@ -48,6 +48,19 @@ else
     or err "Failed to clone repo"
 end
 
+# Check that the replacement desktop was exported into this checkout.
+for file in waybar/.config/waybar/config.jsonc rofi/.config/rofi/config.rasi \
+        mako/.config/mako/config awob/.config/awob/awob.toml \
+        systemd/.config/systemd/user/waybar.service \
+        systemd/.config/systemd/user/awob.service.d/override.conf
+    test -f "$DOTFILES_DIR/home/$file"
+    or err "Missing home/$file. Export the new desktop configs into the repository first."
+end
+for name in launcher system-menu vpn-tracker pkg-install pkg-remove
+    test -x "$DOTFILES_DIR/home/local-bin/.local/bin/$name"
+    or err "Missing executable $name. Export the new local scripts into the repository first."
+end
+
 # ── hardware detection ───────────────────────────────────────────────────────
 step "Detecting hardware"
 
@@ -103,6 +116,13 @@ if not string match -qi "y" $hardware_ans
 end
 
 # ── install paru ─────────────────────────────────────────────────────────────
+# Move the old helper out of the way before makepkg can resolve it as install(1).
+set legacy_install "$HOME/.local/bin/install"
+if cmp -s "$legacy_install" "$DOTFILES_DIR/home/local-bin/.local/bin/pkg-install"
+    mv -T --backup=numbered -- "$legacy_install" "$legacy_install.amane-backup"
+    or err "Failed to move the old package install helper"
+end
+
 step "Setting up paru (AUR helper)"
 if command -q paru
     ok "paru already installed"
@@ -195,6 +215,11 @@ sudo flatpak remote-add --system --if-not-exists \
     flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 or err "Failed to configure Flathub"
 
+# The desktop package picker installs Flatpaks per user.
+flatpak remote-add --user --if-not-exists \
+    flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+or err "Failed to configure user Flathub"
+
 if test (count $flatpak_apps) -gt 0
     sudo flatpak install --system --noninteractive --or-update flathub $flatpak_apps
     or err "Flatpak install failed"
@@ -210,9 +235,33 @@ step "Copying dotfiles to \$HOME"
 for pkg_dir in $DOTFILES_DIR/home/*/
     set pkg (basename $pkg_dir)
     info "Copying $pkg"
-    # -rT: merge into target dir, overwrite existing files
-    cp -rT $pkg_dir $HOME
-    or warn "Copy failed for $pkg — check for permission errors"
+    switch $pkg
+        case amane
+            continue
+        case local-bin
+            mkdir -p "$HOME/.local/bin"
+            or err "Failed to create the local bin directory"
+            for script in "$pkg_dir/.local/bin/"*
+                if not contains -- (basename "$script") install remove shell
+                    cp -rp -- "$script" "$HOME/.local/bin/"
+                    or err "Failed to install $script"
+                end
+            end
+        case systemd
+            mkdir -p "$HOME/.config/systemd/user"
+            or err "Failed to create the user unit directory"
+            for unit in awww.service waybar.service
+                cp -- "$pkg_dir/.config/systemd/user/$unit" "$HOME/.config/systemd/user/"
+                or err "Failed to install $unit"
+            end
+            cp -rT -- "$pkg_dir/.config/systemd/user/awob.service.d" \
+                "$HOME/.config/systemd/user/awob.service.d"
+            or err "Failed to install the awob service overrides"
+        case '*'
+            # Merge into the home directory.
+            cp -rT "$pkg_dir" "$HOME"
+            or warn "Copy failed for $pkg — check for permission errors"
+    end
 end
 
 ok "Dotfiles copied"
@@ -257,45 +306,6 @@ set limine_template "$HOME/.config/limine.conf.template"
 cp $DOTFILES_DIR/system/boot/limine.conf.template $limine_template
 ok "Template saved to $limine_template"
 
-# ── install and compile Amane ───────────────────────────────────────────────
-step "Installing and compiling Amane"
-
-sudo pacman -S --needed --noconfirm gcc pkgconf wayland libxkbcommon fontconfig \
-    freetype2 expat vulkan-icd-loader libpulse pam
-or err "Failed to install Amane build dependencies"
-
-set amane_src "$DOTFILES_DIR/.amane-build"
-set amane_revision 544cbfc23af37f84ac237cd9bec53173981772b3
-if not test -d "$amane_src/.git"
-    git clone https://github.com/MystiaFin/amane.git "$amane_src"
-    or err "Failed to clone Amane"
-end
-git -C "$amane_src" checkout --detach "$amane_revision"
-or err "Failed to check out the Amane build revision"
-
-# The CLI generates the shell's Cargo manifest at build time.
-set amane_patch "$DOTFILES_DIR/system/amane/config-dependencies.patch"
-if not git -C "$amane_src" apply --reverse --check "$amane_patch" 2>/dev/null
-    git -C "$amane_src" apply "$amane_patch"
-    or err "Failed to patch Amane's generated manifest"
-end
-
-begin
-    # Use Arch's Cargo and rustc even when Rustup shims are on PATH.
-    set -lx PATH /usr/bin $PATH
-    cargo install --locked --path "$amane_src/cli" --root "$HOME/.local"
-    or err "Failed to install the Amane CLI"
-
-    env AMANE_CONFIG="$HOME/.config/amane" XDG_CACHE_HOME="$HOME/.cache" \
-        "$HOME/.local/bin/amane" compile
-    or err "Failed to compile the Amane shell"
-end
-
-test -x "$HOME/.cache/amane/amane-shell"
-or err "The compiled Amane shell is missing"
-
-ok "Amane installed and compiled"
-
 # ── enable system services ───────────────────────────────────────────────────
 step "Enabling system services"
 
@@ -323,20 +333,13 @@ for svc in $system_services
     or warn "  failed to enable $svc"
 end
 
-# ── enable user service ─────────────────────────────────────────────────────
-step "Enabling user service"
+# ── enable desktop user services ─────────────────────────────────────────────
+step "Enabling desktop user services"
 
 systemctl --user daemon-reload
 or err "Failed to reload user services"
-systemctl --user enable --force shell.service awww.service hyprpolkitagent.service opentabletdriver.service
+systemctl --user enable --force waybar.service awob.service awww.service hyprpolkitagent.service opentabletdriver.service
 or err "Failed to enable desktop services"
-
-if systemctl --user is-active --quiet graphical-session.target
-    systemctl --user start awww.service hyprpolkitagent.service
-    or warn "Failed to start wallpaper or authentication service"
-    systemctl --user restart shell.service
-    or err "Failed to start the Amane shell"
-end
 
 # ── snapper setup ────────────────────────────────────────────────────────────
 step "Setting up Snapper"

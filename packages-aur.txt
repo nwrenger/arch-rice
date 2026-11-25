@@ -1,3 +1,5 @@
+awob-bin
+awob-listener-pipewire-bin
 catppuccin-cursors-mocha
 chroncal-bin
 cliamp

@@ -1,0 +1,72 @@
+#!/usr/bin/env fish
+
+set -l mode $argv[1]
+
+for pid in (pgrep -u (id -u) -x rofi)
+    set -l args (string split0 </proc/$pid/cmdline)
+
+    if contains -- "menu:system-menu $mode" $args
+        kill $pid
+        exit 0
+    end
+
+    if test "$mode" = apps; and contains -- drun $args
+        kill $pid
+        exit 0
+    end
+end
+
+switch "$mode"
+    case apps
+        exec rofi \
+            -replace \
+            -show drun \
+            -me-select-entry '' \
+            -me-accept-entry MousePrimary \
+            -eh 2 \
+            -theme-str '
+                entry {
+                    placeholder: "Applications";
+                }
+                listview {
+                    fixed-height: true;
+                    dynamic: false;
+                }
+            '
+
+    case root power
+        exec rofi \
+            -replace \
+            -show menu \
+            -modes "menu:system-menu $argv[1]" \
+            -eh 1 \
+            -hover-select \
+            -me-select-entry '' \
+            -me-accept-entry MousePrimary \
+            -kb-cancel 'Control+Escape' \
+            -kb-custom-1 'Escape' \
+            -theme-str '
+                window {
+                    width: 270px;
+                }
+                listview {
+                    lines: 5;
+                    fixed-height: false;
+                    dynamic: false;
+                    cycle: true;
+                }
+                element {
+                    children: [element-text];
+                    padding: 14px 16px;
+                    cursor: pointer;
+                }
+                element-text {
+                    font: "FiraCode Nerd Font 16px";
+                    vertical-align: 0.5;
+                }
+            '
+
+    case '*'
+        echo "Usage: launcher apps|root|power" >&2
+        exit 1
+end

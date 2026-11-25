@@ -41,8 +41,26 @@ end
 # hypr
 home_cp hypr .config/hypr
 
-# Amane desktop
-home_cp amane .config/amane
+# Desktop components
+home_cp waybar .config/waybar
+home_cp rofi .config/rofi
+home_cp mako .config/mako
+home_cp awob .config/awob/awob.toml
+home_cp awob .config/awob/themes
+
+# Upgrade old audio bindings in the exported copy. The awob listener handles OSDs.
+set -l binds "$OUT/home/hypr/.config/hypr/config/binds.lua"
+if test -f "$binds"
+    sed -i \
+        -e 's|"shell volume up"|"wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"|' \
+        -e 's|"shell volume down"|"wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"|' \
+        -e 's|"shell volume mute"|"wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"|' \
+        -e 's|"shell mic mute"|"wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"|' \
+        -e 's|"shell media next"|"playerctl next"|' \
+        -e 's|"shell media toggle"|"playerctl play-pause"|' \
+        -e 's|"shell media previous"|"playerctl previous"|' \
+        "$binds"
+end
 
 # alacritty
 home_cp alacritty .config/alacritty
@@ -82,11 +100,18 @@ home_cp nwg-look .config/nwg-look
 # uwsm
 home_cp uwsm .config/uwsm
 
-# systemd user services
-home_cp systemd .config/systemd
+# Export local units. The installer enables the units and recreates the symlinks.
+home_cp systemd .config/systemd/user/awww.service
+home_cp systemd .config/systemd/user/waybar.service
+home_cp systemd .config/systemd/user/awob.service.d
 
 # local bin (custom scripts)
-home_cp local-bin .local/bin
+for script in "$HOME"/.local/bin/*
+    set -l name (basename "$script")
+    if not contains -- "$name" install remove shell
+        home_cp local-bin ".local/bin/$name"
+    end
+end
 
 # ── system configs ───────────────────────────────────────────────────────────
 step "Exporting system configs"
@@ -176,6 +201,12 @@ filter_pkgs "$OUT/packages-pacman.txt" $pacman_filter
 # AUR packages
 pacman -Qqm > "$OUT/packages-aur.txt"
 filter_pkgs "$OUT/packages-aur.txt" $aur_filter
+
+# Keep desktop dependencies even when Pacman records them as dependencies.
+printf '%s\n' libnotify mako playerctl rofi waybar >> "$OUT/packages-pacman.txt"
+printf '%s\n' awob-bin awob-listener-pipewire-bin >> "$OUT/packages-aur.txt"
+sort -u -o "$OUT/packages-pacman.txt" "$OUT/packages-pacman.txt"
+sort -u -o "$OUT/packages-aur.txt" "$OUT/packages-aur.txt"
 
 # Flatpak applications (system and user installations)
 if command -q flatpak

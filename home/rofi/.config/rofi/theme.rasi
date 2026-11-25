@@ -1,0 +1,146 @@
+* {
+    base:     #1e1e2e;
+    mantle:   #181825;
+    surface:  #313244;
+    overlay:  #6c7086;
+    subtext:  #a6adc8;
+    text:     #cdd6f4;
+    mauve:    #cba6f7;
+    red:      #f38ba8;
+
+    font: "FiraCode Nerd Font 15px";
+    background-color: transparent;
+    text-color: @text;
+
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    location: center;
+    anchor: center;
+    width: 470px;
+
+    background-color: @base;
+    border: 2px;
+    border-color: @mauve;
+    border-radius: 9px;
+    padding: 16px;
+}
+
+mainbox {
+    children: [inputbar, listview];
+    spacing: 10px;
+}
+
+inputbar {
+    children: [textbox-search, entry];
+
+    background-color: @mantle;
+    border-radius: 9px;
+    padding: 12px;
+    spacing: 8px;
+}
+
+textbox-search {
+    str: "󰍉";
+    font: "FiraCode Nerd Font 24px";
+    text-color: @subtext;
+
+    padding: 0 2px;
+    expand: false;
+    vertical-align: 0.5;
+}
+
+entry {
+    font: "FiraCode Nerd Font 16px";
+    text-color: @text;
+    placeholder: "Search...";
+    placeholder-color: @overlay;
+    cursor-color: @text;
+
+    expand: true;
+    horizontal-align: 0;
+    vertical-align: 0.5;
+}
+
+listview {
+    columns: 1;
+    lines: 8;
+
+    fixed-height: true;
+    dynamic: false;
+    scrollbar: false;
+    spacing: 8px;
+}
+
+element {
+    children: [element-icon, element-text];
+    orientation: horizontal;
+
+    background-color: @base;
+    border-radius: 9px;
+    padding: 8px 16px;
+    spacing: 16px;
+}
+
+element normal.normal,
+element alternate.normal {
+    background-color: @base;
+    text-color: @text;
+}
+
+element selected.normal {
+    background-color: @surface;
+    text-color: @text;
+}
+
+element normal.active,
+element alternate.active {
+    background-color: @base;
+    text-color: @mauve;
+}
+
+element selected.active {
+    background-color: @surface;
+    text-color: @mauve;
+}
+
+element normal.urgent,
+element alternate.urgent {
+    background-color: @base;
+    text-color: @red;
+}
+
+element selected.urgent {
+    background-color: @surface;
+    text-color: @red;
+}
+
+element-icon {
+    size: 28px;
+    background-color: transparent;
+    vertical-align: 0.5;
+}
+
+element-text {
+    font: "FiraCode Nerd Font 15px";
+    background-color: transparent;
+    text-color: inherit;
+
+    horizontal-align: 0;
+    vertical-align: 0.5;
+}
+
+message {
+    background-color: @mantle;
+    border-radius: 9px;
+    padding: 12px;
+}
+
+textbox {
+    background-color: transparent;
+    text-color: @subtext;
+}

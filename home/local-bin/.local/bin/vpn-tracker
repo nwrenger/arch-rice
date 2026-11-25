@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+
+set -g previous unknown
+
+function update
+    set -l current
+    set -l vpn_status (mullvad status)
+
+    if string match -q 'Connected*' $vpn_status
+        set current connected
+    else if string match -q 'Disconnected*' $vpn_status
+        set current disconnected
+    else
+        return
+    end
+
+    test "$previous" = "$current"; and return
+
+    if test "$current" = connected
+        echo '{"text":"󰒃","class":"connected","tooltip":"VPN connected"}'
+
+        if test "$previous" != unknown
+            awob send --preempt \
+                --icon network-vpn \
+                --accent '#b4befe' \
+                --app 'VPN connected' \
+                vpn 100 100 >/dev/null
+        end
+    else
+        echo '{"text":"󰌙","class":"disconnected","tooltip":"VPN disconnected"}'
+
+        if test "$previous" != unknown
+            awob send --preempt \
+                --icon network-vpn-disconnected \
+                --accent '#6c7086' \
+                --app 'VPN disconnected' \
+                vpn 0 100 >/dev/null
+        end
+    end
+
+    set -g previous $current
+end
+
+update
+
+mullvad status listen | while read -l line
+    update
+end

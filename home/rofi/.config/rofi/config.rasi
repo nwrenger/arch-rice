@@ -1,0 +1,14 @@
+configuration {
+    font: "FiraCode Nerd Font 15px";
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+
+    matching: "normal";
+    hover-select: true;
+    disable-history: true;
+    cycle: false;
+
+    drun-display-format: "{name}\n<span size='small' foreground='#a6adc8'>{comment}</span>";
+}
+
+@theme "theme"

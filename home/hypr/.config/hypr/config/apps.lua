@@ -4,10 +4,10 @@ local apps = {
 
     fileManager = "nautilus",
 
-    applauncher = "shell launcher apps",
+    applauncher = "launcher apps",
 
-    menu = "shell launcher root",
-    powerMenu = "shell launcher power",
+    menu = "launcher root",
+    powerMenu = "launcher power",
 
     editor = "zeditor",
     browser = "zen-browser",

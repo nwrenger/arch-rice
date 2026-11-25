@@ -1,0 +1,19 @@
+name = "catppuccin-mocha"
+description = "Minimal Catppuccin Mocha OSD"
+version = "1.0.0"
+
+[layout]
+template = "scene.kdl"
+
+[icons]
+volume = "audio-volume-high"
+volume-low = "audio-volume-low"
+volume-medium = "audio-volume-medium"
+volume-muted = "audio-volume-muted"
+mic = "microphone-sensitivity-high"
+mic-low = "microphone-sensitivity-low"
+mic-muted = "microphone-disabled"
+brightness = "display-brightness"
+battery = "battery"
+battery-low = "battery-caution"
+battery-empty = "battery-empty"

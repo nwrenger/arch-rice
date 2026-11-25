@@ -1,0 +1,151 @@
+#!/usr/bin/env fish
+
+set -l initial root
+if test (count $argv) -ge 1
+    set initial $argv[1]
+end
+
+function emit_header
+    set -l prompt_text $argv[1]
+    set -l current $argv[2]
+    set -l initial $argv[3]
+
+    printf '\0theme\x1fentry { placeholder: "%s"; }\n' "$prompt_text"
+    printf '\0data\x1f%s|%s\n' $current $initial
+    printf '\0no-custom\x1ftrue\n'
+    printf '\0keep-selection\x1ffalse\n'
+    printf '\0keep-filter\x1ffalse\n'
+    printf '\0use-hot-keys\x1ftrue\n'
+end
+
+function emit_item
+    printf '%s\0info\x1f%s\n' $argv[1] $argv[2]
+end
+
+function launch
+    setsid --fork -- $argv </dev/null >/dev/null 2>&1
+end
+
+function show_root
+    emit_header "System" root $argv[1]
+
+    emit_item "󰋼  About" about
+    emit_item "󰏗  Install" install
+    emit_item "󰚰  Update" update
+    emit_item "󰆴  Remove" remove
+    emit_item "󰐥  Power" power
+end
+
+function show_install
+    emit_header "Install" install $argv[1]
+
+    emit_item "󰣇  Official" install-official
+    emit_item "󰣇  AUR" install-aur
+    emit_item "  Flatpak" install-flatpak
+end
+
+function show_remove
+    emit_header "Remove" remove $argv[1]
+
+    emit_item "󰣇  System" remove-system
+    emit_item "  Flatpak" remove-flatpak
+end
+
+function show_power
+    emit_header "Power" power $argv[1]
+
+    emit_item "󰐥  Shutdown" shutdown
+    emit_item "󰜉  Reboot" reboot
+    emit_item "󰍃  Logout" logout
+    emit_item "󰤄  Suspend" suspend
+end
+
+function show_menu
+    set -l current $argv[1]
+    set -l initial $argv[2]
+
+    switch $current
+        case root
+            show_root $initial
+        case install
+            show_install $initial
+        case remove
+            show_remove $initial
+        case power
+            show_power $initial
+    end
+end
+
+function parse_data
+    if test -n "$ROFI_DATA"
+        string split '|' -- "$ROFI_DATA"
+    else
+        echo $initial
+        echo $initial
+    end
+end
+
+switch "$ROFI_RETV"
+    case 0
+        show_menu $initial $initial
+
+    case 10
+        # custom key: Escape
+        set -l data (parse_data)
+        set -l current $data[1]
+        set -l initial_menu $data[2]
+
+        if test "$current" = "$initial_menu"
+            exit 0
+        else
+            show_menu $initial_menu $initial_menu
+        end
+
+    case 1
+        set -l data (parse_data)
+        set -l initial_menu $data[2]
+
+        switch "$ROFI_INFO"
+            case install
+                show_install $initial_menu
+
+            case remove
+                show_remove $initial_menu
+
+            case power
+                show_power $initial_menu
+
+            case about
+                launch alacritty --title smolfloat -e fish -c 'fastfetch; show_done'
+
+            case update
+                launch alacritty --title float -e update
+
+            case install-official
+                launch pkg-install Official
+
+            case install-aur
+                launch pkg-install AUR
+
+            case install-flatpak
+                launch pkg-install Flatpak
+
+            case remove-system
+                launch pkg-remove System
+
+            case remove-flatpak
+                launch pkg-remove Flatpak
+
+            case shutdown
+                launch systemctl poweroff
+
+            case reboot
+                launch systemctl reboot
+
+            case logout
+                launch hyprctl dispatch 'hl.dsp.exit()'
+
+            case suspend
+                launch systemctl suspend
+        end
+end

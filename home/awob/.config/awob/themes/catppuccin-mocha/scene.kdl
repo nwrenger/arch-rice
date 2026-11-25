@@ -1,0 +1,69 @@
+palette {
+    base     "rgba(30,30,46,0.95)"
+    surface  "#313244"
+    overlay  "#6c7086"
+    text     "#cdd6f4"
+
+    mauve    "#cba6f7"
+    red      "#f38ba8"
+    yellow   "#f9e2af"
+    lavender "#b4befe"
+    transparent "rgba(0,0,0,0)"
+}
+
+styles {
+    style "low"      accent="$red"
+    style "normal"   accent="$red"
+    style "warn"     accent="$yellow"
+    style "critical" accent="$red"
+    style "muted"    accent="$overlay"
+    style "overflow" accent="$mauve"
+}
+
+surface {
+    width 300
+    height 60
+
+    anchor "bottom"
+    offset 0 -48
+
+    fade-in    "120ms"
+    show       "1500ms"
+    fade-out   "120ms"
+    transition "150ms"
+}
+
+scene {
+    // Background and border
+    rect z=0 x=1 y=1 width="100%-2" height="100%-2" \
+        radius=9 fill="$base" stroke="$mauve" stroke-width=2
+
+    // Icon
+    image z=1 src="{$icon ?? icon($event)}" \
+        x=14 y="center" width=20 height=20 \
+        colour="$accent"
+
+    // Event label
+    text z=1 value="{truncate($app ?? label($event), 24)}" \
+        x=46 y="{$event == 'vpn' ? 22 : 12}" \
+        font="FiraCode Nerd Font 13" \
+        colour="{$event == 'vpn' ? $accent : $text}"
+
+    // Percentage (hidden for VPN)
+    text z=1 anchor="top-right" \
+        value="{$event == 'vpn' ? '' : int($progress * 100)}{$event == 'vpn' ? '' : '%'}" \
+        x=14 y=12 font="FiraCode Nerd Font 13" \
+        colour="$text"
+
+    // Progress track (transparent for VPN)
+    rect z=1 x=46 y=38 width="100%-60" height=6 \
+        radius=3 \
+        fill="{$event == 'vpn' ? $transparent : $surface}"
+
+    // Progress bar (transparent for VPN)
+    bar z=2 x=46 y=38 width="100%-60" height=6 \
+        radius=3 \
+        fill="{$event == 'vpn' ? $transparent : $accent}" \
+        min=0 max="$max" value="$value" \
+        from="{$lastValue ?? $value}"
+}

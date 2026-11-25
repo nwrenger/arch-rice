@@ -1,8 +1,8 @@
 # arch-rice
 
-Arch Linux + Hyprland with the Amane desktop shell, themed in Catppuccin Mocha / Mauve.
+Arch Linux + Hyprland, themed in Catppuccin Mocha / Mauve.
 
-Amane provides the bar, system tray, launcher, system and power menus, notifications, and OSD. Wallpaper transitions use `awww`, and authentication prompts use `hyprpolkitagent`.
+Waybar provides the bar and system tray. Rofi handles app launching and runs Fish-powered system and power menus. Mako handles notifications, and awob shows on-screen feedback for audio and VPN changes. Wallpaper transitions use `awww`, and authentication prompts use `hyprpolkitagent`.
 
 ## Fresh install
 
@@ -25,8 +25,7 @@ The installer will:
 - Install all packages from `packages-pacman.txt`, `packages-aur.txt`, and `packages-flatpak.txt`
 - Copy all home dotfiles directly into `$HOME`
 - Copy system configs
-- Install the Amane CLI with Cargo and compile the desktop shell before enabling `shell.service`
-- Enable the desktop user services, including `awww`, `hyprpolkitagent`, and OpenTabletDriver
+- Enable Waybar, awob, `awww`, `hyprpolkitagent`, and OpenTabletDriver for the graphical session
 - Set up NetworkManager and systemd-resolved for the next boot
 - Clean up (`~/.dotfiles` removed after install)
 - Give instructions for the next manual steps
@@ -69,7 +68,10 @@ arch-rice/
 │
 ├── home/                 ← copied directly into $HOME
 │   ├── hypr/             → .config/hypr/
-│   ├── amane/            → .config/amane/ (Rust shell source)
+│   ├── waybar/           → .config/waybar/
+│   ├── rofi/             → .config/rofi/
+│   ├── mako/             → .config/mako/
+│   ├── awob/             → .config/awob/ (settings and themes)
 │   ├── alacritty/        → .config/alacritty/
 │   ├── fish/             → .config/fish/
 │   ├── starship/         → .config/starship.toml
@@ -82,13 +84,11 @@ arch-rice/
 │   ├── zed/              → .config/zed/
 │   ├── nwg-look/         → .config/nwg-look/
 │   ├── uwsm/             → .config/uwsm/
-│   ├── systemd/          → .config/systemd/user/ (user services)
+│   ├── systemd/          → .config/systemd/user/ (local units and awob drop-in)
 │   ├── local-bin/        → .local/bin/ (custom scripts)
 │   └── wallpaper/        → Pictures/wallpaper/
 │
 └── system/               ← system configs and installer assets
-    ├── amane/
-    │   └── config-dependencies.patch
     ├── etc/
     │   ├── NetworkManager/conf.d/10-network.conf
     │   ├── locale.conf
@@ -106,24 +106,31 @@ arch-rice/
 
 ## Desktop controls
 
-| Binding             | Action                                                    |
-| ------------------- | --------------------------------------------------------- |
-| `Super+Space`       | Application launcher                                      |
-| `Super+Alt+Space`   | System menu                                               |
-| `Super+Escape`      | Power menu                                                |
-| `Super+Shift+E`     | Wi-Fi manager (`wlctl`)                                   |
-| `Super+Shift+V`     | Mullvad menu                                              |
-| `Super+Shift+W`     | Random wallpaper                                          |
-| Volume keys         | Volume controls and Amane OSD                             |
-| Media playback keys | Previous track, play/pause, and next track with Amane OSD |
+| Binding             | Action                                                     |
+| ------------------- | ---------------------------------------------------------- |
+| `Super+Space`       | Application launcher                                       |
+| `Super+Alt+Space`   | System menu                                                |
+| `Super+Escape`      | Power menu                                                 |
+| `Super+Shift+E`     | Wi-Fi manager (`wlctl`)                                    |
+| `Super+Shift+V`     | Mullvad menu                                               |
+| `Super+Shift+W`     | Random wallpaper                                           |
+| Volume keys         | WirePlumber volume controls with awob feedback             |
+| Media playback keys | Previous track, play/pause, and next track via `playerctl` |
 
-`shell.service` runs `~/.cache/amane/amane-shell` in the graphical session. The `shell` command wraps Amane IPC. Try `shell launcher apps`, `shell launcher power`, or `shell volume mute`. Run `random-wallpaper` to change the wallpaper from a terminal.
+Use `launcher apps`, `launcher root`, or `launcher power` to open the corresponding Rofi menu. Invoking the same launcher again closes it. The system menu includes Fastfetch, `update`, and the `pkg-install` and `pkg-remove` helpers. Run `random-wallpaper` to change the wallpaper from a terminal.
 
-After editing your installed shell source in `~/.config/amane/src/`, rebuild it and restart the user service from your graphical session.
+Waybar exposes separate output and microphone controls and opens Wiremix for either one. The awob PipeWire listener displays volume and mute feedback automatically. Waybar runs `vpn-tracker`, which listens to Mullvad events and updates the VPN widget and awob when the connection state changes.
+
+## Desktop services and reloads
+
+Waybar uses the repo's user unit. awob uses the packaged `awob.service` with the exported `~/.config/systemd/user/awob.service.d/override.conf` drop-in. Its `ReadWritePaths=%h/.config/awob` setting allows the service to write to its config directory. The Catppuccin Mocha theme is selected in `~/.config/awob/awob.toml`. Mako starts on demand through D-Bus, and Rofi reads its config on each launch.
 
 ```bash
-env AMANE_CONFIG="$HOME/.config/amane" XDG_CACHE_HOME="$HOME/.cache" amane compile &&
-    systemctl --user restart shell.service
+systemctl --user daemon-reload                 # After editing a unit or drop-in
+systemctl --user restart waybar.service        # Also restarts the VPN tracker
+systemctl --user restart awob.service
+makoctl reload
+hyprctl reload
 ```
 
 ## Hardware tags

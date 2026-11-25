@@ -72,13 +72,13 @@ hl.bind("SUPER + Tab", function()
 end)
 
 -- Keyboard multimedia keys for volume and microphone
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("shell volume up"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("shell volume down"), { locked = true, repeating = true })
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd("shell volume mute"), { locked = true, repeating = true })
-hl.bind("XF86Tools", hl.dsp.exec_cmd("shell mic mute"), { locked = true, repeating = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86Tools", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
 
 -- Media controls
-hl.bind("XF86AudioNext", hl.dsp.exec_cmd("shell media next"), { locked = true })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("shell media toggle"), { locked = true })
-hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("shell media toggle"), { locked = true })
-hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("shell media previous"), { locked = true })
+hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })

@@ -47,6 +47,7 @@ iwd
 jq
 kvantum
 kvantum-qt5
+libnotify
 libpulse
 libqalculate
 libva-nvidia-driver nvidia
@@ -54,6 +55,7 @@ limine
 linux
 linux-firmware
 linux-headers
+mako
 mullvad-vpn-daemon
 nano
 nautilus
@@ -69,6 +71,7 @@ pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
+playerctl
 podman
 prismlauncher
 python-pipx
@@ -78,6 +81,7 @@ qt6-5compat
 qt6ct
 qt6-wayland
 resvg
+rofi
 rustup
 sassc
 satty
@@ -98,6 +102,7 @@ tesseract-data-eng
 ttf-firacode-nerd
 uwsm
 vim
+waybar
 wev
 wget
 wireless_tools

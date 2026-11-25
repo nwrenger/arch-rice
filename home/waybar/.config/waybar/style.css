@@ -1,0 +1,117 @@
+@define-color base     #1e1e2e;
+@define-color overlay  #6c7086;
+@define-color text     #cdd6f4;
+
+@define-color mauve    #cba6f7;
+@define-color red      #f38ba8;
+@define-color peach    #fab387;
+@define-color yellow   #f9e2af;
+@define-color green    #a6e3a1;
+@define-color sky      #89dceb;
+@define-color blue     #89b4fa;
+@define-color lavender #b4befe;
+
+* {
+    font-family: "FiraCode Nerd Font";
+    font-feature-settings: "liga";
+    font-size: 13px;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    color: @text;
+}
+
+window#waybar {
+    background-color: @base;
+}
+
+tooltip {
+    background-color: alpha(@base, 0.95);
+    border: 2px solid @mauve;
+    border-radius: 9px;
+}
+
+tooltip label {
+    color: @text;
+}
+
+#workspaces {
+    padding: 0;
+}
+
+#workspaces button {
+    padding: 0 8px;
+}
+
+#workspaces button.empty label {
+    color: @overlay;
+}
+
+#workspaces button.active label {
+    color: @text;
+}
+
+#workspaces button:hover {
+    background: none;
+    box-shadow: none;
+}
+
+.module {
+    padding: 0 10px;
+}
+
+#clock {
+    color: @blue;
+}
+
+#cpu {
+    color: @green;
+}
+
+#cpu.mid {
+    color: @yellow;
+}
+
+#cpu.high {
+    color: @red;
+}
+
+#memory {
+    color: @peach;
+}
+
+#custom-mic {
+    color: @yellow;
+}
+
+#custom-vpn {
+    color: @lavender;
+}
+
+#bluetooth {
+    color: @sky;
+}
+
+#network {
+    color: @sky;
+}
+
+#wireplumber.output {
+    color: @red;
+}
+
+#wireplumber.mic {
+    color: @yellow;
+}
+
+#wireplumber.output.muted,
+#wireplumber.mic.muted,
+#custom-mic.muted,
+#custom-vpn.disconnected,
+#custom-uxplay.off,
+#bluetooth.disabled,
+#bluetooth.off,
+#network.disconnected,
+#network.disabled {
+    color: @overlay;
+}
