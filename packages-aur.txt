@@ -9,13 +9,13 @@ iriunwebcam-bin
 limine-entry-tool
 limine-snapper-sync
 localsend-bin
-ocrmypdf
 opentabletdriver
 osu-lazer-bin
 osu-mime
-protonup-qt-bin
-python-fpdf2
-python-pkg_resources
+protonup-qt
+python-gevent-eventemitter
+python-inputs
+python-steam
 ttf-ia-writer
 visual-studio-code-bin
 wlctl-bin
